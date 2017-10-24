@@ -11,6 +11,9 @@ import win32clipboard
 import sys
 import re
 import fileinput
+import mymod
+import bibleworks
+import wordauto
 
 ###############################################################################
 # namespace scoping
@@ -21,93 +24,12 @@ from win32com.client import Dispatch
 from win32clipboard import OpenClipboard
 from win32clipboard import CloseClipboard
 from win32clipboard import GetClipboardData
-
-###############################################################################
-# global utilities
-def strip_trailing_footnote(verse):
-	stripped = re.sub(r'\d+$', '', verse)
-	return stripped
-
-# For WTT, right align word.  Output WTT Gen 1:1:, Reverse, put to next line 
-def reverse_words(line):
-	s = ''
-	toks = line.split(' ')
-	while(toks):
-		s += toks.pop()
-
-	return s
-		
-
-def split_keep_delims(line, delim):
-	return [e+delim for e in line.split(delim) if e]
-
-def strip_nonalnum_re(word):
-	return re.sub(r"^\W+|\W+$", "", word)
-
-def PrepreplaceFile(file, find, repl):
-	with fileinput.FileInput(file, inplace=True, backup='.sav') as file:
-		for line in file:
-			print(line.replace(find, repl), end='')
-
-###############################################################################
-# Bibleworks automation class
-class BibleWorksAuto:
-	def __init__(self):
-		self.bw = None
-
-	def Initialize(self):
-		self.bw = client.Dispatch('Bibleworks.Automation')
-		assert(self.bw != None)
-		hr = self.bw.ClipGoToVerse(True)
-		assert(hr == None)
-
-	def GoToVerse(self, verse):
-		return self.bw.GoToVerse(verse)
-
-	#returns string if pass, None if fails
-	def GetVerse(self):
-		handle = OpenClipboard(None)
-		assert(handle == None)
-
-		s = GetClipboardData(win32clipboard.CF_UNICODETEXT)
-		CloseClipboard();
-		return s
-
-###############################################################################
-# Word automation class
-class WordAuto:
-	def __init__(self):
-		self.word = None
-		self.doc = None
-		self.sel = None
-
-	def Initialize(self):
-		self.word = client.Dispatch('Word.Application')
-		assert(self.word != None)	
-
-		self.doc = self.word.Documents.Add()
-		assert(self.doc != None)
-
-		self.word.Visible = True
-		self.sel = self.word.Selection
-
-	def PrintToWord(self, line, bold = 1, fontsize=12, fontname = 'Palatino Linotype'):	
-		self.sel.Font.Bold = bold
-		self.sel.Font.Name = fontname
-		self.sel.Font.Size = fontsize
-		self.sel.TypeText(line)
-	
-	def SaveDoc(self, name):
-		self.word.Application.ActiveDocument.SaveAs2(name)
-
-	def SaveDocAsPDF(self, name):
-		self.word.Application.ActiveDocument.SaveAs2(name, 17)
-
-	def CloseDoc(self):
-		self.word.Application.ActiveDocument.Close()
-
-	def RunMacro(self, name):
-		self.word.Application.Run(name)
+from mymod import strip_trailing_footnote
+from mymod import split_keep_delims
+from mymod import strip_nonalnum_re
+from mymod import PrepreplaceFile
+from bibleworks import BibleWorksAuto
+from wordauto import WordAuto
 
 ###############################################################################
 # Class for parsing the London Baptist Confession from raw text to Word
@@ -150,6 +72,7 @@ class LBCTextToWord:
 			bookchap += tok
 			self.bw.GoToVerse(bookchap)
 			s = self.bw.GetVerse()
+			s = strip_trailing_footnote(s)
 			self.PrintVerse(s)
 			bookchap = savebookchap
 
@@ -158,6 +81,7 @@ class LBCTextToWord:
 		for v in verses:
 			self.bw.GoToVerse(v);
 			s = self.bw.GetVerse()
+			s = strip_trailing_footnote(s)
 			#strip the 2 Timothy 3:, just get the verse number and verse
 			toks = s.split(':')
 			#just no need to save it
@@ -198,6 +122,7 @@ class LBCTextToWord:
 			else:
 				self.bw.GoToVerse(bookchap + rest)
 				s = self.bw.GetVerse()
+				s = strip_trailing_footnote(s)
 				self.PrintVerse(s + ' ')
 
 	def PrintVerse(self, verse):
