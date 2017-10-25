@@ -1,0 +1,359 @@
+;; c-mode setup
+;;(add-hook 'c-mode-common-hook 'c-mode-common-setup)
+;;(add-hook 'c++-mode-hook 'c++-mode-common-setup)
+
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (add-to-list
+   'package-archives
+   '("melpa" . "http://melpa.org/packages/")
+   t)
+  (package-initialize))
+
+(setq c-default-style "linux"
+      c-basic-offset 8)
+
+(setq-default c-basic-offset 8
+                  tab-width 8
+                  indent-tabs-mode t)
+
+(defun c-lineup-arglist-tabs-only (ignored)
+  "Line up argument lists by tabs, not spaces"
+  (let* ((anchor (c-langelem-pos c-syntactic-element))
+         (column (c-langelem-2nd-pos c-syntactic-element))
+         (offset (- (1+ column) anchor))
+         (steps (floor offset c-basic-offset)))
+    (* (max steps 1)
+       c-basic-offset)))
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            ;; Add kernel style
+            (c-add-style
+             "linux-tabs-only"
+             '("linux" (c-offsets-alist
+                        (arglist-cont-nonempty
+                         c-lineup-gcc-asm-reg
+                         c-lineup-arglist-tabs-only))))))
+
+(add-hook 'c-mode-hook
+          (lambda ()
+            (let ((filename (buffer-file-name)))
+              ;; Enable kernel mode for the appropriate files
+              (when (and filename
+                         (string-match (expand-file-name "~/src/linux-trees")
+                                       filename))
+                (setq indent-tabs-mode t)
+                (setq show-trailing-whitespace t)
+                (c-set-style "linux-tabs-only")))))
+
+(setq make-backup-files nil)
+(global-linum-mode 1)
+;adding syntax highlighing for extensionless files like vector
+(require 'cl)
+
+(defun file-in-directory-list-p (file dirlist)
+  "Returns true if the file specified is contained within one of
+the directories in the list. The directories must also exist."
+  (let ((dirs (mapcar 'expand-file-name dirlist))
+        (filedir (expand-file-name (file-name-directory file))))
+    (and
+     (file-directory-p filedir)
+     (member-if (lambda (x) ; Check directory prefix matches
+                  (string-match (substring x 0 (min(length filedir) (length x))) filedir))
+                dirs))))
+
+(defun buffer-standard-include-p ()
+  "Returns true if the current buffer is contained within one of
+the directories in the INCLUDE environment variable."
+  (and (getenv "INCLUDE")
+       (file-in-directory-list-p buffer-file-name (split-string (getenv "INCLUDE") path-separator))))
+
+(add-to-list 'magic-fallback-mode-alist '(buffer-standard-include-p . c++-mode))
+
+(load "eshell")
+
+
+(defun parse-file-name (filename)
+"Returns a list of strings which are the directory and file components
+of the FILENAME.  If the first element of the list is the empty string, the
+FILENAME was absolute.  Note that the filename is not canonicalized (ie.
+no redundant information is removed."
+(if (string-match "/" filename)
+    (cons (substring filename 0 (match-beginauto-mode-alistning 0))
+	  (parse-file-name (substring filename (match-end 0))))
+  (cons filename nil)))
+
+(defun file-name-containing-directory (filename &optional n)
+"Returns containing directory of FILENAME.  With the optional Nth argument,
+gives that many containing directories, where 0 means return empty string."
+(let* ((dir (file-name-directory filename))
+       (comp (parse-file-name (directory-file-name (if dir dir "")))))
+  (mapconcat '(lambda (x) x) (nthcdr (- (length comp)
+					(if n n 1)) comp) "/")))
+
+(defun c-unique-file-identifier (form &optional upper basename dirs)
+"Create a unique file identifier based on FORM, which should be compatible
+with `format'.  If optional argument UPPER is true, then produce in upper
+case, if optional BASENAME is true, then remove trailing suffix (after last
+`.'), if optional DIRS is non-zero then also include that many
+prefix directories."
+(let ((name (if (and basename
+		     (string-match "\.[^.]*$" (buffer-file-name)))
+		(substring (buffer-file-name) 0 (match-beginning 0))
+	      (buffer-file-name))))
+  (setq name (if (and dirs (> dirs 0))
+		 (concat (file-name-containing-directory name dirs)
+			 "/"
+			 (file-name-nondirectory name))
+	       (file-name-nondirectory name)))
+   (format form (mapconcat '(lambda (ch)
+			     (cond ((and (>= ch ?a) (<= ch ?z))
+				    (make-string 1 (if upper
+						       (+ ch (- ?A ?a))
+						     ch)))
+				   ((and (>=auto-mode-alist ch ?A) (<= ch ?Z))
+				    (make-string 1 ch))
+				   (t "_")))
+			  name ""))))
+
+
+(defun c-newline-and-perhaps-comment (&optional soft)
+"Insert a newline and continue commenting if inside a C style comment.
+This function usually inserts a newline character.  However it has
+several other actions;
+
+If point is within a one line comment /* ... */ then point is moved to the
+next line of code .
+
+If point is directly after /* then a multi-line comment block is written
+and point placed on the first line.
+
+If point is within a multi-line comment, then a newline starting with a
+'*' is added at the correct indentation.
+
+If point is after an empty line, any remaining white space is removed.
+
+If c-auto-newline is on, then the correct indentation is placed on the next
+line regardless.
+
+The inserted newline is marked hard if `use-hard-newlines' is true,
+unless optional argument SOFT is non-nil."
+(interactive)
+(let ((auto-fill-function nil))
+  (save-match-data
+    (cond ( ;;
+	   ;; Inside a one line comment?
+	   ;;
+	   (and (save-excursion
+		  (end-of-line)
+		  (let ((eol-pos (point)))
+		    (beginning-of-line)
+		    (re-search-forward "/\\*.*\\*/" eol-pos t)))
+		(>= (point) (match-beginning 0))
+		(<= (point) (match-end 0)))
+	   ;;
+	   ;; Then goto next line.
+	   ;;
+	   (end-of-line)
+	   (if soft (insert ?\n) (newline))
+	   (if c-auto-newline
+	       (indent-according-to-mode)))
+	  ( ;;
+	   ;; Inside a block comment?
+	   ;;
+	   (save-excursion
+	     (and (re-search-backward "/\\*\\|\\*/" 0 t)
+		  (string= "/*" (buffer-substring (match-beginning 0)
+						  (match-end 0)))))
+	   ;;
+	  ;; Check if we just wrote "/*", if so build a comment block.
+	   ;;
+	   (if (save-excursion
+		 (end-of-line)
+		 (re-search-backward "/\\*\\([^ \t]*\\)\\(.*\\)"
+				     (save-excursion (beginning-of-line)
+						     (point)) t))
+	       (let ((col (save-excursion (goto-char (match-beginning 0))
+					  (current-column)))
+		     (start (buffer-substring (match-beginning 1)
+					      (match-end 1)))
+		     (text (buffer-substring (match-beginning 2)
+					     (match-end 2))))
+		 (if (/= (length text) 0)
+		     (delete-region (match-beginning 2) (match-end 2))
+		   (setq text " "))
+		 (if soft (insert ?\n) (newline))
+		 (indent-to-column col)
+		 (insert " *" text)
+		 (if soft (insert ?\n) (newline))
+		 (indent-to-column col)
+		 (if (/= (length start) 1)
+		     (insert " "))
+		 ;;
+	      ;; Handle JavaDoc convention correctly. (ie. /** ... */)
+		 ;;
+		 (if (string-equal start "*")
+		     (insert " ")
+		   (insert start))
+		 (insert "*/")
+		 (previous-line 1)
+		 (end-of-line))
+	     ;;
+	     ;; Otherwise continue the comment block.
+	     ;;
+	     (if soft (insert ?\n) (newline))
+	     (indent-according-to-mode)
+	     (insert "*")
+	     (indent-relative)))
+	  ( ;;
+	   ;; After an empty line?
+	   ;;
+	   (save-excursion
+	     (beginning-of-line)
+	     (looking-at "[	]+$"))
+	   (delete-region
+	    (match-beginning 0)
+	    (match-end 0))
+	   (if soft (insert ?\n) (newline))
+	   (if c-auto-newline
+	       (indent-according-to-mode)))
+	  ( ;;
+	   ;; Otherwise just do a normal newline.
+	   ;;
+	   (if soft (insert ?\n) (newline))
+	   (if c-auto-newline
+	       (indent-according-to-mode)))
+	  ))))
+
+
+(defun c-insert-conditional-include (&optional dirs)
+"Inserts cpp directives to only include this file once.  With optional
+DIRS argument (or with a prefix argument) that many containing directories are
+also included."
+(interactive "P")
+(if (and dirs (not (numberp dirs)))
+    (setq dirs (/ (logb (prefix-numeric-value dirs)) 2)))
+(save-excursion
+  (let ((name (c-unique-file-identifier "_%s_" t nil dirs)))
+    (beginning-of-buffer)
+    (insert "#ifndef " name "\n#define " name "\n") (add-to-list 'load-path
+                     "/path/to/your/ecb/installation/directory")
+    (end-of-buffer)
+    (insert "\n#endif /* " name " */\n"))))
+
+(defun c-narrow-to-function ()
+"Narrows to the function which the point is in."
+(interactive)
+(save-excursion
+  (narrow-to-region (progn (beginning-of-defun)
+			   (beginning-of-line)
+			   (while (not (or (looking-at "^[ \t]*$")
+					   (bobp)))
+			     (forward-line -1))
+			   (if (looking-at "^[ \t]*$")
+			       (forward-line))
+			   (point))
+		    (progn (end-of-defun) (point)))))
+
+(defun c-insert-seperating-comment ()
+"Inserts a seperating comment line."
+(interactive)
+(indent-according-to-mode)
+(insert "/* ")
+(insert-char ?= (- 73 (current-column)))
+(insert " */\n"))
+
+(defun c-insert-line-comment () (add-to-list 'load-path
+                     "/path/to/your/ecb/installation/directory")
+"Inserts a seperating comment line."
+(interactive)
+(indent-according-to-mode)
+(insert "/* ")
+(insert-char ?- (- 73 (current-column)))
+(insert " */\n"))
+
+
+
+;; custom clangcompile
+(setq compile-command "cl -Zi ")
+
+
+;adding syntax highlighing for extensionlessauto-mode-alist files like vector
+(require 'cl)
+
+(defun file-in-directory-list-p (file dirlist)
+  "Returns true if the file specified is contained within one of
+the directories in the list. The directories must also exist."
+  (let ((dirs (mapcar 'expand-file-name dirlist))
+        (filedir (expand-file-name (file-name-directory file))))
+    (and
+     (file-directory-p filedir)
+     (member-if (lambda (x) ; Check directory prefix matches
+                  (string-match (substring x 0 (min(length filedir) (length x))) filedir))
+                dirs))))
+
+(defun buffer-standard-include-p ()
+  "Returns true if the current buffer is contained within one of
+the directories in the INCLUDE environment variable."
+  (and (getenv "INCLUDE")
+       (file-in-directory-list-p buffer-file-name (split-string (getenv "INCLUDE") path-separator))))
+
+(add-to-list 'magic-fallback-mode-alist '(buffer-standard-include-p . c++-mode))
+
+;;;;; font-lock ;;;;;
+;; Font-Lock is a syntax-highlighting package.
+
+(setq font-lock-use-default-fonts nil)
+(setq font-lock-use-default-colors nil)
+(require 'font-lock)
+
+;; Mess around with the faces a bit.  Note that you have
+;; to change the font-lock-use-default-* variables *before*
+;; loading font-lock, and wait till *after* loading font-lock
+;; to customize the faces.
+
+;; string face is green
+(set-face-foreground 'font-lock-string-face "aquamarine")
+
+;; function names are bold green
+;;(copy-face 'bold 'font-lock-function-name-face)
+(set-face-foreground 'font-lock-function-name-face "beige")
+
+;; comments are wheat
+(copy-face 'font-lock-comment-face 'font-lock-doc-string-face)
+(set-face-foreground 'font-lock-comment-face "dark sea green")
+
+;; misc. faces
+(copy-face 'italic 'font-lock-type-face)
+(set-face-foreground 'font-lock-keyword-face "orchid")
+(set-face-foreground 'font-lock-variable-name-face "white")
+
+
+;; set preferences
+(set-foreground-color "white")
+(set-background-color "black")
+(set-cursor-color "white")
+(line-number-mode       t)
+(column-number-mode     t)
+(show-paren-mode 1)
+(global-font-lock-mode 1)
+;;Avoid audio beeping and give a visible warning
+(setq visible-bell 1)
+
+
+;;(load "/usr/share/emacs/site-lisp/clang-format-3.8/clang-format.el")
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(inhibit-startup-screen t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
