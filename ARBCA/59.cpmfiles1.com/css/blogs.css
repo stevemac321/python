@@ -1,0 +1,266 @@
+/* @override 
+	http://59.dev/css/blogs.css
+*/
+
+.post{
+   padding: 19px 0;
+   border-bottom: 1px solid #ebebea;
+   float: left;
+   width: 654px;
+   position: relative;
+}
+
+body#blog h2{
+   float: left;
+   width: 520px;
+}
+
+#sidebar p.feed{
+   font-weight: bold;
+   font-size: 1.4em;
+   margin-bottom: 30px;
+}
+
+#sidebar p.feed a{
+   padding-left: 20px;
+   background: url(../_img/bg_feed.png) no-repeat 0 0;
+   text-decoration: none;
+   color: #4894a6;
+}
+
+#sidebar p.feed a:hover{
+   text-decoration: underline;
+}
+
+#content .post h4{
+   font-size: 1.6em;
+   font-weight: bold;
+   line-height: 1.4;
+   margin: 0;
+}
+
+#content .post h4 a{
+   text-decoration: none;
+}
+
+#content .post h4 a:hover{
+   text-decoration: underline;
+}
+
+#content p.post-date{
+   font-size: 1.2em;
+   font-weight: bold;
+   color: #777;
+}
+
+#content p.post-meta{
+   margin: 0;
+   color: #777;
+}
+
+/* @group Sidebar */
+
+#sideblog{
+   margin-bottom: 30px;
+   padding: 0 18px;
+}
+
+#sideblog a{
+   color: #4894a6;
+}
+
+#sidebar h3{
+   font-size: 1.4em;
+   color: #1e1e1e;
+   font-weight: bold;
+   margin-bottom: 13px;
+   clear: left;
+}
+
+#sideblog ul{
+   margin-bottom: 20px;
+   width: 167px;
+   float: left;
+}
+
+#sideblog ul li{
+   font-size: 1.2em;
+   font-weight: bold;
+   margin-bottom: 5px;
+   padding-left: 4px;
+   line-height: 1.4;
+   width: 167px;
+   float: left;
+   background: url(../_img/bg_sidebar_recent.html) repeat-x bottom;
+   color: #777;
+}
+
+#sideblog ul li a{
+   text-decoration: none;
+   float: left;
+   display: block;
+   padding: 3px 3px 5px;
+   width: 161px;
+}
+
+#sideblog #archives ul li a{
+   width: auto;
+}
+
+#sideblog ul li a:hover{
+   text-decoration: underline;
+}
+
+#sideblog ul li span{
+   color: #999;   
+}
+
+#recent-messages .recent h4{
+   font-size: 1.2em;
+   font-weight: bold;
+   margin-bottom: 5px;
+   padding-left: 4px;
+}
+
+#recent-messages .recent h4 a{
+   text-decoration: none;
+}
+
+/* @end Sidebar */
+
+/* @group Detail Page */
+
+#content #text{
+   clear: none;
+   margin-bottom: 20px;
+}
+
+#blog-links{
+   width: 218px;
+   float: right;
+   background: url(../_img/bg_sermon-links.html) no-repeat bottom;
+   margin-left: 20px;
+   margin-bottom: 20px;
+}
+
+#content #blog-links ul{
+   background: url(../_img/bg_sermon-links_ul.gif) no-repeat;
+   margin: 0;
+   padding: 12px 22px;
+}
+
+#content #blog-links li{
+   background: url(../_img/bg_sermon-links_li.gif) repeat-x bottom;
+   font-size: 1.2em;
+}
+
+#content #blog-links li.last{
+   background: none;
+}
+
+#content #blog-links li a{
+   color: #d2d2d2;
+   font-weight: bold;
+   text-decoration: none;
+   padding: 12px 0;
+   display: block;
+   padding-left: 23px;
+   background: url(../_img/bg_sermon-links_a.html) no-repeat;
+}
+
+#content #blog-links li#subscribe a{
+   background-position: 0 -155px;
+}
+
+#content #blog-links li#share a{
+   background-position: 0 -198px;
+}
+
+#content #blog-links li a:hover{
+   text-decoration: underline;
+}
+
+/* @group Comment Form */
+
+#post-comment-form {
+	width: 75%;
+	padding: 15px;
+	background: #ecece4;
+	border: 1px solid #d7d3ca;
+	margin-bottom: 30px;
+}
+
+#blog #post-comment-form h3 {
+	margin: 0 0 20px;
+	border: 0;
+	padding: 0;
+	font-size: 17px;
+}
+
+#post-comment-form label {
+	display: block;
+	width: 88px;
+	font-size: 13px;
+	color: #1e1e1e;
+	font-weight: bold;
+	vertical-align: top;
+    margin-bottom: 5px;
+}
+
+#post-comment-form input,
+#post-comment-form textarea {
+	width: 50%;
+	height: 21px;
+	padding: 4px;
+	border: 1px solid #ddd;
+	margin-bottom: 8px;
+	vertical-align: middle;
+}
+
+#post-comment-form textarea {
+	height: 100px;
+	width: 90%%;
+}
+
+#post-comment-form input.submit {
+	width: auto;
+	height: auto;
+	clear: both;
+	float: none;
+	border: auto;
+	background: #c1bbad;
+	display: block;
+}
+
+#comment-status{
+   	padding: 15px;
+	background: #e1c4c4;
+	border: 1px dotted #911e1e;
+	margin-bottom: 20px;
+}
+
+#content #comment-status p{
+   margin: 0;
+}
+
+/* @end Comment Form */
+
+/* @group Comments */
+
+.comment{
+   padding: 10px;
+   border-bottom: 1px solid #eeedec;
+}
+
+.comment.last{
+   background: none;
+}
+
+#content .comment p.comment-author{
+   font-size: 1.2em;
+   color: #777;
+}
+
+/* @end Comments */
+
+/* @end Detail Page */

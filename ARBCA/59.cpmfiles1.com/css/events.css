@@ -1,0 +1,556 @@
+/* @override 
+	http://59.cpmassets.com/css/events.css
+*/
+
+body#eventlist #main,
+body#eventpage #main{
+   background: none;
+}
+
+body#eventlist #content,
+body#eventpage #content{
+   width: 936px;
+   padding-left: 0;
+   padding-top: 22px;
+}
+
+body#eventpage #content{
+   padding-top: 0;
+}
+
+body#eventlist #content h2,
+body#eventpage #content h2{
+   padding-left: 12px;
+   margin: 0;
+   height: 37px;
+}
+
+body#eventpage #content h2{
+   margin-bottom: 25px;
+}
+
+#options{
+   position: absolute;
+   top: 25px;
+   right: 12px;
+   z-index: 2;
+}
+
+#content ul#caltabs{
+   width: 368px;
+   margin: 0;
+   padding: 0;
+   float: left;
+}
+
+#content ul#caltabs li{
+   float: left;
+   width: 182px;
+   height: 45px;
+   font-size: 1.2em;
+   list-style: none;
+}
+
+#content ul#caltabs li#cal-tab{
+   margin-right: 3px;
+}
+
+#content ul#caltabs li a{
+   display: block;
+   height: 31px;
+   padding-top: 14px;
+   color: #898989;
+   text-decoration: none;
+   font-weight: bold;
+   padding-left: 60px;
+   background: url(../_img/bg_caltabs.png) 0 -45px;
+   text-shadow: #fffeff 1px 1px 0;
+   outline: none;
+}
+
+#content ul#caltabs li.current a{
+   color: #353330;
+}
+
+#content ul#caltabs li#list-tab a{
+   padding-left: 78px;
+   background-position: -186px -45px;
+}
+
+#content ul#caltabs li#cal-tab.current a{
+   background-position: 0 0;
+}
+
+#content ul#caltabs li#list-tab.current a{
+   background-position: -186px 0;
+}
+
+#events-container{
+   clear: both;
+   width: 920px;
+   float: left;
+   padding: 0 8px;
+   position: relative;
+   z-index: 1;
+   margin-top: 24px;
+}
+
+#filter-wrap{
+   width: 920px;
+   float: left;
+   display: none;
+}
+
+#cat-filter{
+   float: left;
+}
+
+#content #cat-filter p{
+   float: left;
+   font-size: 1.2em;
+   height: 35px;
+   font-weight: bold;
+   margin-right: 10px;
+   color: #41403c;
+   margin-bottom: 0;
+   padding-top: 1px;
+}
+
+#cat-filter select{
+   float: left;
+}
+
+/* @group Calendar View */
+
+#events-calendar{
+   clear: left;
+   position: relative;
+   padding: 12px;
+   background: url(../_img/bg_events-container.png) no-repeat 0 0;
+}
+
+table.calendar{
+   width: 896px;
+   border-collapse: collapse;
+}
+
+table.calendar caption{
+   height: 43px;
+   background: url(../_img/bg_cal_caption.png) no-repeat;
+   text-align: center;
+}
+
+table.calendar caption span.currentMonth{
+   font-size: 1.9em;
+   color: #fff;
+   padding-top: 13px;
+   display: inline-block;
+   font-weight: bold;
+   text-shadow: #474e23 1px 1px 0;
+}
+
+table.calendar caption span.prevMonth,
+table.calendar caption span.nextMonth{
+   display: block;
+   position: absolute;
+   width: 117px;
+   height: 43px;
+}
+
+table.calendar caption span.prevMonth{
+   background: url(../_img/bg_cal_prev.png);
+   top: 12px;
+   left: 12px;
+}
+
+table.calendar caption span.nextMonth{
+   background: url(../_img/bg_cal_next.png);
+   top: 12px;
+   right: 12px;
+}
+
+#content table.calendar caption span a{
+   font-size: 1.2em;
+   color: #f0f0f0;
+   font-weight: bold;
+   text-transform: uppercase;
+   text-decoration: none;
+   display: block;
+   padding-top: 17px;
+   height: 26px;
+   text-align: left;
+}
+
+table.calendar caption span.prevMonth a{
+   padding-left: 41px;
+}
+
+#content table.calendar caption span.nextMonth a{
+   padding-right: 41px;
+   text-align: right;
+}
+
+table.calendar th{
+   background: url(../_img/bg_cal_th.png);
+   height: 31px;
+   color: #aeaba4;
+   text-align: center;
+   font-size: 1em;
+   text-transform: uppercase;
+   font-weight: bold;
+}
+
+table.calendar tbody{
+   margin-top: 5px;
+   width: 939px;
+}
+
+table.calendar td{
+   border: 1px solid #dedede;
+   vertical-align: top;
+   text-align: right;
+   color: #909090;
+   height: 111px;
+}
+
+table.calendar td span{
+   font-size: 12px;
+   position: relative;
+   top: 5px;
+   right: 5px;
+}
+
+#content table.calendar td span a{
+   text-decoration: none;
+}
+
+table.calendar td span a:hover{
+   text-decoration: underline;
+}
+
+#content table.calendar td ul{
+   margin: 12px 0;
+   text-align: left;
+}
+
+#content table.calendar td ul li{
+   margin-bottom: 2px;
+   list-style: none;
+}
+
+#content table.calendar td ul li a{
+   background: #d8ebf0;
+   display: block;
+   color: #3690a7;
+   font-size: 11px;
+   text-decoration: none;
+   line-height: 1.8;
+   padding: 0 10px;
+}
+
+#content table.calendar td ul li a:hover{
+   background: #f3ca95;
+}
+
+/* @end Calendar View */
+
+/* @group List View */
+
+#list-view{
+   display: none;
+   clear: left;
+   width: 896px;
+   padding: 12px;
+   float: left;
+   background: url(../_img/bg_events-container.png) no-repeat 0 0;
+}
+
+div.monthwrap{
+   width: 896px;
+   float: left;
+   margin-bottom: 10px;
+}
+
+.monthwrap dl.monthlabel{
+   width: 896px;
+   float: left;
+   height: 40px;
+   background: url(../_img/bg_monthlabel.png) no-repeat;
+   border: none;
+   padding: 0;
+   margin-bottom: 6px;
+}
+
+.monthwrap dt,
+.monthwrap dd{
+   float: left;
+}
+
+.monthlabel dt,
+.monthlabel dd{
+   color: #fff !important;
+   font-weight: bold;
+   text-shadow: #414141 1px 1px 0;
+}
+
+.monthlabel dt{
+   width: 414px;
+   padding-top: 10px;
+   font-size: 1.9em;
+   color: #fff;
+   font-weight: bold;
+   text-shadow: #414141 1px 1px 0;
+   padding-left: 16px;
+}
+
+.monthlabel dd{
+   font-size: 1.4em !important;
+   padding-top: 13px !important;
+}
+
+dd.time{
+   width: 172px;
+}
+
+dd.category{
+   width: 174px;
+}
+
+dd.details{
+   width: 120px;
+}
+
+.monthwrap dl{
+   width: 939px;
+   float: left;
+   padding: 10px;
+}
+
+.monthwrap dl.event-info{
+   position: relative;
+   padding-left: 70px;
+   width: 816px;
+   border-bottom: 1px solid #eee;
+}
+
+.monthwrap dl.event-info.last{
+   border: none;
+}
+
+dt.day{
+   width: 53px;
+   height: 35px;
+   position: absolute;
+   left: 10px;
+   top: 10px;
+   padding-right: 7px;
+   background: url(../_img/bg_date-list_day.png) no-repeat;
+   text-align: center;
+   padding-top: 13px;
+   font-weight: bold;
+   font-size: 2.2em;
+}
+
+dd.title{
+   width: 344px;   
+   padding-left: 16px;
+   font-size: 1.4em;
+   padding-top: 18px;
+   font-weight: bold;
+   height: 30px;
+}
+
+#content dd.title a{
+   color: #343434;
+   text-decoration: none;
+}
+
+#content dd.title a:hover{
+   text-decoration: underline;
+}
+
+.event-info dd.time{
+   font-size: 1.3em;
+   color: #343434;
+   padding-top: 18px;
+   height: 30px;
+}
+
+.event-info dd.category{
+   font-size: 1.3em;
+   padding-top: 18px;
+}
+
+.event-info dd.details{
+   font-size: 1.1em;
+   width: 110px;
+   padding-top: 8px;
+}
+
+#content dd.details a{
+   display: block;
+   height: 23px;
+   width: 109px;
+   background: url(../_img/bg_event-details.png) no-repeat;
+   text-decoration: none;
+   font-weight: bold;
+   color: #897c6f;
+   text-align: center;
+   padding-top: 14px;
+   float: left;
+   margin-left: -8px;
+}
+
+#content dd.details a:hover{
+   color: #9c3312;
+}
+
+#pagination-wrap{
+   border-top: 1px solid #eee;
+   padding-top: 29px;
+}
+
+/* @end List View */
+
+/* @group Event Detail */
+
+#event-content{
+   float: left;
+   width: 520px;
+   clear: left;
+   padding-left: 12px;
+}
+
+#content #event-content a{
+   color: #4894a6;
+}
+
+#gmap{
+   float: right;
+   width: 346px;
+}
+
+#gmap iframe{
+   border: 1px solid #dcd6ce;
+   width: 330px;
+   padding: 8px;
+}
+
+#content #gmap p.full{
+   width: 294px;
+   height: 35px;
+   font-size: 1em;
+   margin: 11px auto;
+}
+
+#content #gmap p.full a{
+   display: block;
+   background: url(../_img/bg_gmap_full.png) no-repeat;
+   text-indent: -9999px;
+   height: 35px;
+}
+
+#content ul#event-meta{
+   margin: 0 0 28px;
+}
+
+#content ul#event-meta li{
+   font-size: 1.5em;
+   margin-bottom: 6px;
+   list-style: none;
+   color: #363029;
+}
+
+/* @group Sidebar */
+
+#content p#back-events{
+   background: url(../_img/bg_p_back-sermons.png) no-repeat 0 4px;
+   font-size: 1.4em;
+   position: absolute;
+   top: 14px;
+   right: 22px;
+}
+
+#content p#back-events a{
+   display: block;
+   padding: 0 0 0 20px;
+   color: #4894a6;
+   font-weight: bold;
+   text-decoration: none;
+}
+
+p#back-sermons a:hover{
+   text-decoration: underline;
+}
+
+#sidebar #same-cat,
+#sidebar #upcoming{
+   width: 170px;
+   float: left;
+   margin-bottom: 16px;
+}
+
+#sidebar h3{
+   font-size: 1.3em;
+   color: #1e1e1e;
+   font-weight: bold;
+   margin-bottom: 13px;
+   clear: left;
+}
+
+#sidebar .event{
+   width: 170px;
+   float: left;
+   margin-bottom: 13px;
+}
+
+#sidebar .event p.date{
+   float: left;
+   width: 35px;
+   height: 30px;
+   background: url(../_img/bg_event_sidebar_date.html) no-repeat;
+   color: #fff;
+   text-align: center;
+   font-size: .9em;
+   padding-top: 7px;
+   text-transform: uppercase;
+   margin-right: 7px;
+}
+
+#sidebar .event p.date span{
+   display: block;
+   font-size: 1.78em;
+   padding-top: 1px;
+}
+
+#sidebar .event h4{
+   font-size: 1.1em;
+   margin-bottom: 5px;
+   padding-top: 5px;
+}
+
+#sidebar .event h4 a{
+   font-weight: bold;
+   text-decoration: none;
+}
+
+#sidebar .event h4 a:hover{
+   text-decoration: underline;
+}
+
+#sidebar .event p{
+   font-size: 1.1em;
+   color: #777;
+}
+
+
+/* @end Sidebar */
+/* @end Event Detail */
+
+/* @group Pagination */
+
+#pagination{
+   padding-left: 40px;
+}
+
+/* @end Pagination */

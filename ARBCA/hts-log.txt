@@ -1,0 +1,17 @@
+HTTrack3.49-2+htsswf+htsjava launched on Sun, 22 Oct 2017 22:21:31 at http://www.arbca.com +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar
+(winhttrack -qwC2%Ps2u1%s%uN0%I0p3DaK0H0%kf2A25000%f#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" http://www.arbca.com -O1 "E:\ARBCA\ARBCA" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar )
+
+Information, Warnings and Errors reported for this mirror:
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+	such as username/password authentication for websites mirrored in this project
+	do not share these files/folders if you want these information to remain private
+
+22:23:14	Error: 	"Forbidden" (403) at link 59.cpmfiles1.com/css/style_ Customized.css (from www.arbca.com/)
+22:31:53	Error: 	"Not Found" (404) at link www.arbca.com/css/bg_home-content2.jpg (from www.arbca.com/css/override.css)
+22:32:33	Error: 	"Forbidden" (403) at link 59.cpmfiles1.com/_img/bg_sidebar_recent.gif (from 59.cpmfiles1.com/css/blogs.css)
+22:32:33	Error: 	"Forbidden" (403) at link 59.cpmfiles1.com/_img/bg_sermon-links.gif (from 59.cpmfiles1.com/css/blogs.css)
+22:32:33	Error: 	"Forbidden" (403) at link 59.cpmfiles1.com/_img/bg_sermon-links_a.png (from 59.cpmfiles1.com/css/blogs.css)
+22:32:33	Error: 	"Forbidden" (403) at link 59.cpmfiles1.com/_img/bg_event_sidebar_date.png (from 59.cpmfiles1.com/css/events.css)
+
+HTTrack Website Copier/3.49-2 mirror complete in 3 hours 56 minutes 48 seconds : 20712 links scanned, 20705 files written (351845552 bytes overall) [355983280 bytes received at 25055 bytes/sec], 34098 bytes transferred using HTTP compression in 2 files, ratio 38%, 53.9 requests per connection
+(6 errors, 0 warnings, 0 messages)
