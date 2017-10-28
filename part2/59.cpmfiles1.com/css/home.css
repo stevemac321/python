@@ -1,0 +1,261 @@
+/* @override http://59.cpmassets.com/css/home.css */
+
+/* @override 
+	http://59.dev/css/home.css
+	http://59.cpmassets.com/css/home.css
+*/
+
+#wrap{
+   background-image: url(../_img/bg_home_wrap.gif);
+}
+
+#container{
+   background-image: url(../_img/bg_home_container.jpg);
+}
+
+#container-inner{
+   padding: 0;
+   background: none;
+}
+
+#content-wrap{
+   background: none;
+   padding: 0;	
+   width: 981px;
+}
+
+/* @group Home Featured */
+
+#home-featured{
+   width: 939px;
+   height: 451px;
+   background: url(../_img/bg_home-featured.png) no-repeat;
+   padding: 20px 21px;
+   position: relative;
+   z-index: 999;
+}
+
+ #home-content:before {
+   content: url('../_img/shadow_follow.png');
+   width: 1039px;
+   margin-right: auto;
+   margin-top: -45px;
+   position: relative;
+   display: block;
+   margin-left: -40px;
+   position: relative;
+   z-index: 9;
+}
+
+#home-banner{
+   margin-bottom: 15px;
+   width: 938px;
+   height: 331px;
+   overflow: hidden;
+   float: left;
+   position: relative;
+}
+
+#home-banner p{
+   margin: 0;
+}
+
+#home-banner img{
+   width: 938px;
+   float: left;
+}
+
+#quicklinks ul,
+#quicklinks li{
+   float: left;
+}
+
+#quicklinks ul{
+   width: 954px;
+}
+
+#quicklinks li{
+   margin-right: 15px;
+   width: 303px;
+   height: 101px;
+   overflow: hidden;
+}
+
+#quicklinks li.first{
+   margin-right: 14px;
+}
+
+#quicklinks li img{
+   width: 303px;
+}
+
+/* @end Home Featured */
+
+/* @group Home Content */
+
+#home-content{
+   background: url(../_img/bg_home-content.jpg) no-repeat center top;
+   padding-top: 31px;
+   width: 981px;
+   float: left;
+   padding-bottom: 60px;
+}
+
+#wn-wrap{
+   float: left;
+   width: 724px;
+   margin-top: 15px;
+   background: url(../_img/bg_wn-wrap.png) repeat-y;
+}
+
+#welcome{
+   width: 208px;
+   padding: 0 20px;
+   float: left;
+}
+
+#welcome h3,
+#home-news h3{
+   color: #9f8a68;
+   font-size: 1.6em;
+   text-transform: uppercase;
+   margin-bottom: 18px;
+}
+
+#home-content p{
+   color: #b1ada0;
+}
+
+#welcome p,
+#welcome li{
+   font-size: 1.3em;
+   line-height: 1.3;
+   margin-bottom: 1em;
+}
+
+#welcome p em{
+   font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+#welcome li{
+   line-height: 1.9;
+   margin: 0;
+}
+
+#welcome a {
+   color: #78acb9;
+   text-decoration: none;
+}
+
+#welcome li a{
+   text-decoration: none;
+   font-weight: bold;
+   color: #78acb9;
+}
+
+#welcome li a:hover{
+   text-decoration: underline;
+}
+
+#home-news{
+   float: left;
+   padding: 0 0 0 24px;
+   width: 442px;
+}
+
+#home-news .news{
+   margin-bottom: 20px;
+}
+
+#home-news .news.last{
+   margin: 0;
+}
+
+#home-news h4{
+   font-size: 1.6em;
+   line-height: 1.4;
+   margin-bottom: .5em;
+}
+
+#home-news h4 a{
+   font-weight: bold;
+   color: #e9e6df;
+   text-decoration: none;
+}
+
+#home-news h4 a:hover{
+   text-decoration: underline;
+}
+
+#home-news p{
+   font-size: 1.4em;
+   line-height: 1.5;
+}
+
+#home-news p a{
+   color: #929c40;
+   text-decoration: none;
+}
+
+#home-news p a:hover{
+   text-decoration: underline;
+}
+
+#home-events{
+   width: 235px;
+   float: right;
+   background: url(../_img/bg_home-events.png) no-repeat bottom left;
+   padding-bottom: 2px;
+}
+
+#home-events h3{
+   font-size: 1.4em;
+   color: #acb171;
+   background: url(../_img/bg_home-events_h3.png);
+   text-align: center;
+   width: 235px;
+   height: 38px;
+   padding-top: 25px;
+   text-transform: uppercase;
+}
+
+#home-events .event{
+   padding-bottom: 22px;
+   background: url(../_img/bg_home_event.png);
+   width: 235px;
+   float: left;
+}
+
+#home-content .event p.date{
+   float: left;
+   width: 56px;
+   text-align: center;
+   font-size: 1.2em;
+   color: #44413b;
+   text-transform: uppercase;
+   text-shadow: #040403 1px 1px 0;
+}
+
+#home-content .event p.date span{
+   font-size: 2.167em;
+   display: block;
+}
+
+#home-content .event h4{
+   float: left;
+   width: 147px;
+   padding: 0 18px 0 14px;
+   line-height: 1.46;
+   font-size: 1.3em;
+}
+
+#home-content .event h4 a{
+   color: #bdb9b0;
+   text-decoration: none;
+}
+
+#home-content .event h4 a:hover{
+   text-decoration: underline;
+}
+
+/* @end Home Content */
