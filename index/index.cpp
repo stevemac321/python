@@ -12,63 +12,63 @@
 
 struct verse {
 	std::string name = "";
-	std::vector<std::string> refs;
+	// std::vector<std::string> refs;
+	std::string ref;
 };
 struct book {
 	std::string name = "";
 	std::vector<verse> verses;
 };
 struct verseless {
-        bool operator()(const verse &l, const verse &r) const
-        {
-                // todo fix the sort to deal with 10 begin greater than 2
-                std::string left = l.name;
-                std::string right = r.name;
+	bool operator()(const verse &l, const verse &r) const
+	{
+		std::string left = l.name;
+		std::string right = r.name;
 
-                char *pl = const_cast<char*>(left.c_str());
-                char *pr = const_cast<char*>(right.c_str());
-                char *ls = pl;
-                char *rs = pr;
-                
-                while(*pl != ':' && *pl != '\n')
-                        pl++;
-                
-                while(*pr != ':' && *pr != '\n')
-                        pr++;
+		char *pl = const_cast<char *>(left.c_str());
+		char *pr = const_cast<char *>(right.c_str());
+		char *ls = pl;
+		char *rs = pr;
 
-                if(*pl == ':')
-                        *pl = '\0';
+		while (*pl != ':' && *pl != '\n')
+			pl++;
 
-                if(*pr == ':')
-                        *pr = '\0';
+		while (*pr != ':' && *pr != '\n')
+			pr++;
 
-                int il = atoi(ls);
-                int ir = atoi(rs);
+		if (*pl == ':')
+			*pl = '\0';
 
-                if(il != ir) 
-                      return il < ir;
-                else {
-                        pl++;
-                        pr++;
+		if (*pr == ':')
+			*pr = '\0';
 
-                        ls = pl;
-                        rs = pr;
+		int il = atoi(ls);
+		int ir = atoi(rs);
 
-                        while(isdigit(*pl))
-                                ++pl;
+		if (il != ir)
+			return il < ir;
+		else {
+			pl++;
+			pr++;
 
-                        while(isdigit(*pr))
-                                ++pr;
+			ls = pl;
+			rs = pr;
 
-                        *pl = '\0';
-                        *pr = '\0';
+			while (isdigit(*pl))
+				++pl;
 
-                        il = atoi(ls);
-                        ir = atoi(rs);
+			while (isdigit(*pr))
+				++pr;
 
-                        return il < ir; 
-                }
-        }
+			*pl = '\0';
+			*pr = '\0';
+
+			il = atoi(ls);
+			ir = atoi(rs);
+
+			return il < ir;
+		}
+	}
 };
 void parsesemicolon(std::vector<book> &v, std::string &chapter,
 		    std::string &paragraph, std::string &footnote,
@@ -107,7 +107,8 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 					ref += paragraph;
 					ref += ".";
 					ref += footnote;
-					vs.refs.push_back(ref);
+					//		vs.refs.push_back(ref);
+					vs.ref = ref;
 					v[i].verses.push_back(vs);
 				}
 		}
@@ -244,6 +245,7 @@ int main()
 			       "3 John",
 			       "Jude",
 			       "Revelation"};
+
 	std::vector<book> v(70);
 	for (size_t i = 0; i < 66; i++)
 		v[i].name = books[i];
@@ -252,16 +254,14 @@ int main()
 
 	for (size_t i = 0; i < 66; i++) {
 		if (!v[i].verses.empty()) {
-                        std::sort(std::begin(v[i].verses), std::end(v[i].verses), verseless());
-                        fprintf(stdout, "\n%s\n", v[i].name.c_str());
-                }
-		for (auto i : v[i].verses) {
-			std::cout << i.name;
-			for (auto r : i.refs)
-                                fprintf(stdout, "\t\t%s", r.c_str());
-			//	std::cout << "\t\t"  << r;
+			std::sort(std::begin(v[i].verses),
+				  std::end(v[i].verses), verseless());
 
-			std::cout << "\n";
+			fprintf(stdout, "\n%s\n", v[i].name.c_str());
+
+			for (auto i : v[i].verses)
+				std::cout << i.name << "\t\t " << i.ref
+					  << std::endl;
 		}
 	}
 }
