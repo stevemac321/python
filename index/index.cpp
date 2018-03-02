@@ -1,8 +1,5 @@
 #include <cstdio>
-#include <cassert>
 #include <cstdlib>
-#include <iostream>
-#include <iomanip>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -13,7 +10,6 @@
 
 struct verse {
 	std::string name = "";
-	// std::vector<std::string> refs;
 	std::string ref;
 };
 struct book {
@@ -161,9 +157,6 @@ void parseline(std::vector<book> &v, std::string &chapter, std::string &line)
 	        if (std::regex_search(line, m, rep))
 		        paragraph = m[1];
 
-                if(paragraph == "")
-                        std::cout << "Bug: " << line << std::endl;
-
 	        // capture refs within parens
 	        if (std::regex_search(line, m, rev))
 		        parens = m[1];
@@ -196,8 +189,6 @@ void parsefile(std::vector<book> &v, const std::string &filename)
                                         if(chapter != "")
 					        parseline(v, chapter, line);
                         }
-			
-			
 		}
 		fs.close();
 	}
