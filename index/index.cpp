@@ -112,7 +112,7 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 					verse vs;
 					vs.name = pverse;
                                         vs.name.erase(remove_if(vs.name.begin(), vs.name.end(), isspace), vs.name.end());
-					std::string ref("LBCF ");
+					std::string ref("LBC ");
 					ref += chapter;
 					ref += ".";
 					ref += paragraph;
@@ -274,7 +274,7 @@ int main()
 			std::sort(std::begin(v[i].verses),
 				  std::end(v[i].verses), verseless());
 
-			fprintf(stdout, "\n%s\n", v[i].name.c_str());
+			fprintf(stdout, "%s\n", v[i].name.c_str());
 
 			for (auto i : v[i].verses)
                                 fprintf(stdout, "%-*s %*s\n", 14, i.name.c_str(), 8, i.ref.c_str());
