@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
@@ -19,6 +20,19 @@ struct book {
 	std::string name = "";
 	std::vector<verse> verses;
 };
+bool is_blank(std::string &s)
+{
+	char *p = const_cast<char *>(s.c_str());
+	if (p) {
+		while (*p != '\0' && *p != '\n') {
+			if (isalnum(*p))
+				return false;
+
+			++p;
+		}
+	}
+	return true;
+}
 struct verseless {
 	bool operator()(const verse &l, const verse &r) const
 	{
@@ -101,13 +115,13 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 				if (book == v[i].name) {
 					verse vs;
 					vs.name = pverse;
+                                        vs.name.erase(remove_if(vs.name.begin(), vs.name.end(), isspace), vs.name.end());
 					std::string ref("LBCF ");
 					ref += chapter;
 					ref += ".";
 					ref += paragraph;
 					ref += ".";
 					ref += footnote;
-					//		vs.refs.push_back(ref);
 					vs.ref = ref;
 					v[i].verses.push_back(vs);
 				}
@@ -143,19 +157,26 @@ void parseline(std::vector<book> &v, std::string &chapter, std::string &line)
 	std::smatch m;
 
 	// find paragraph, set current paragraph
-	if (std::regex_search(line, m, rep))
-		paragraph = m[1];
+        if(strstr(line.c_str(), "Paragraph")) {
+	        if (std::regex_search(line, m, rep))
+		        paragraph = m[1];
 
-	// capture refs within parens
-	if (std::regex_search(line, m, rev))
-		parens = m[1];
+                if(paragraph == "")
+                        std::cout << "Bug: " << line << std::endl;
 
-	// tokenize on #
-	std::istringstream iss(parens);
-	std::string token = "";
+	        // capture refs within parens
+	        if (std::regex_search(line, m, rev))
+		        parens = m[1];
 
-	while (std::getline(iss, token, '#'))
-		parsehash(v, chapter, paragraph, token);
+                if(parens != "") {
+	                // tokenize on #
+	                std::istringstream iss(parens);
+	                std::string token = "";
+
+	                while (std::getline(iss, token, '#'))
+		                parsehash(v, chapter, paragraph, token);
+                }
+        }
 }
 void parsefile(std::vector<book> &v, const std::string &filename)
 {
@@ -168,10 +189,15 @@ void parsefile(std::vector<book> &v, const std::string &filename)
 	if (fs.is_open()) {
 		while (!fs.eof()) {
 			std::getline(fs, line);
-			if (std::regex_search(line, m, re))
-				chapter = m[1];
-
-			parseline(v, chapter, line);
+			if (!is_blank(line)) {
+				if (std::regex_search(line, m, re)) 
+					chapter = m[1];
+                                else 
+                                        if(chapter != "")
+					        parseline(v, chapter, line);
+                        }
+			
+			
 		}
 		fs.close();
 	}
@@ -260,8 +286,7 @@ int main()
 			fprintf(stdout, "\n%s\n", v[i].name.c_str());
 
 			for (auto i : v[i].verses)
-				std::cout << i.name << "\t\t " << i.ref
-					  << std::endl;
+                                fprintf(stdout, "%-*s %*s\n", 14, i.name.c_str(), 8, i.ref.c_str());
 		}
 	}
 }
