@@ -8,13 +8,9 @@
 #include <cstring>
 #include <algorithm>
 
-struct verse {
-	std::string name = "";
-	std::string ref;
-};
 struct book {
 	std::string name = "";
-	std::vector<verse> verses;
+	std::vector<std::pair<std::string, std::string>> verses;
 };
 bool is_blank(std::string &s)
 {
@@ -30,10 +26,11 @@ bool is_blank(std::string &s)
 	return true;
 }
 struct verseless {
-	bool operator()(const verse &l, const verse &r) const
+	bool operator()(const std::pair<std::string, std::string> &l,
+			const std::pair<std::string, std::string> &r) const
 	{
-		std::string left = l.name;
-		std::string right = r.name;
+		std::string left = l.first;
+		std::string right = r.first;
 
 		char *pl = const_cast<char *>(left.c_str());
 		char *pr = const_cast<char *>(right.c_str());
@@ -109,17 +106,21 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 			book = pcpy;
 			for (size_t i = 0; i < 66; i++)
 				if (book == v[i].name) {
-					verse vs;
-					vs.name = pverse;
-                                        vs.name.erase(remove_if(vs.name.begin(), vs.name.end(), isspace), vs.name.end());
+
+					std::string name = pverse;
+					name.erase(remove_if(name.begin(),
+							     name.end(),
+							     isspace),
+						   name.end());
 					std::string ref("LBC ");
 					ref += chapter;
 					ref += ".";
 					ref += paragraph;
 					ref += ".";
 					ref += footnote;
-					vs.ref = ref;
-					v[i].verses.push_back(vs);
+					auto p = std::make_pair(name, ref);
+					v[i].verses.push_back(p);
+					break;
 				}
 		}
 	}
@@ -153,23 +154,23 @@ void parseline(std::vector<book> &v, std::string &chapter, std::string &line)
 	std::smatch m;
 
 	// find paragraph, set current paragraph
-        if(strstr(line.c_str(), "Paragraph")) {
-	        if (std::regex_search(line, m, rep))
-		        paragraph = m[1];
+	if (strstr(line.c_str(), "Paragraph")) {
+		if (std::regex_search(line, m, rep))
+			paragraph = m[1];
 
-	        // capture refs within parens
-	        if (std::regex_search(line, m, rev))
-		        parens = m[1];
+		// capture refs within parens
+		if (std::regex_search(line, m, rev))
+			parens = m[1];
 
-                if(parens != "") {
-	                // tokenize on #
-	                std::istringstream iss(parens);
-	                std::string token = "";
+		if (parens != "") {
+			// tokenize on #
+			std::istringstream iss(parens);
+			std::string token = "";
 
-	                while (std::getline(iss, token, '#'))
-		                parsehash(v, chapter, paragraph, token);
-                }
-        }
+			while (std::getline(iss, token, '#'))
+				parsehash(v, chapter, paragraph, token);
+		}
+	}
 }
 void parsefile(std::vector<book> &v, const std::string &filename)
 {
@@ -183,12 +184,11 @@ void parsefile(std::vector<book> &v, const std::string &filename)
 		while (!fs.eof()) {
 			std::getline(fs, line);
 			if (!is_blank(line)) {
-				if (std::regex_search(line, m, re)) 
+				if (std::regex_search(line, m, re))
 					chapter = m[1];
-                                else 
-                                        if(chapter != "")
-					        parseline(v, chapter, line);
-                        }
+				else if (chapter != "")
+					parseline(v, chapter, line);
+			}
 		}
 		fs.close();
 	}
@@ -277,7 +277,8 @@ int main()
 			fprintf(stdout, "%s\n", v[i].name.c_str());
 
 			for (auto i : v[i].verses)
-                                fprintf(stdout, "%-*s %*s\n", 14, i.name.c_str(), 8, i.ref.c_str());
+				fprintf(stdout, "%-*s %*s\n", 14,
+					i.first.c_str(), 8, i.second.c_str());
 		}
 	}
 }
