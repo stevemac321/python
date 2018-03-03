@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -12,19 +13,6 @@ struct book {
 	std::string name = "";
 	std::vector<std::pair<std::string, std::string>> verses;
 };
-bool is_blank(std::string &s)
-{
-	char *p = const_cast<char *>(s.c_str());
-	if (p) {
-		while (*p != '\0' && *p != '\n') {
-			if (isalnum(*p))
-				return false;
-
-			++p;
-		}
-	}
-	return true;
-}
 struct verseless {
 	bool operator()(const std::pair<std::string, std::string> &l,
 			const std::pair<std::string, std::string> &r) const
@@ -137,63 +125,66 @@ void parsehash(std::vector<book> &v, std::string &chapter,
 	if (std::regex_search(token, m, re)) {
 		footnote = m[1];
 		verses = m[2];
-	}
-	// tokenize on ;
-	std::istringstream iss(verses);
-	std::string semi;
+	
+	        // tokenize on ;
+	        std::istringstream iss(verses);
+	        std::string semi;
 
-	while (std::getline(iss, semi, ';'))
-		parsesemicolon(v, chapter, paragraph, footnote, semi);
+	        while (std::getline(iss, semi, ';'))
+		        parsesemicolon(v, chapter, paragraph, footnote, semi);
+        }
 }
-void parseline(std::vector<book> &v, std::string &chapter, std::string &line)
+void parseline(std::vector<book> &v, std::string &chapter,
+	       std::string &paragraph, std::string &line)
 {
-	std::regex rep("Paragraph ([0-9]+)");
 	std::regex rev("\\((#[0-9]+.*?)\\)");
-	std::string paragraph = "";
 	std::string parens = "";
 	std::smatch m;
 
-	// find paragraph, set current paragraph
-	if (strstr(line.c_str(), "Paragraph")) {
-		if (std::regex_search(line, m, rep))
-			paragraph = m[1];
-
+	if (strstr(line.c_str(), "(")) {
 		// capture refs within parens
-		if (std::regex_search(line, m, rev))
-			parens = m[1];
+		if(std::regex_search(line, m, rev)) {
+		        parens = m[1];
+		        assert(parens != "");
 
-		if (parens != "") {
-			// tokenize on #
-			std::istringstream iss(parens);
-			std::string token = "";
+		        // tokenize on #
+		        std::istringstream iss(parens);
+		        std::string token = "";
 
-			while (std::getline(iss, token, '#'))
-				parsehash(v, chapter, paragraph, token);
-		}
+		        while (std::getline(iss, token, '#'))
+			        parsehash(v, chapter, paragraph, token);
+                
+                }
 	}
 }
 void parsefile(std::vector<book> &v, const std::string &filename)
 {
 	std::fstream fs(filename);
 	std::regex re("Chapter ([0-9]+)");
+	std::regex rep("Paragraph ([0-9]+)");
 	std::smatch m;
 	std::string line = "";
 	std::string chapter = "";
+	std::string paragraph = "";
 
 	if (fs.is_open()) {
 		while (!fs.eof()) {
 			std::getline(fs, line);
-			if (!is_blank(line)) {
-				if (std::regex_search(line, m, re))
-					chapter = m[1];
-				else if (chapter != "")
-					parseline(v, chapter, line);
+			if (strstr(line.c_str(), "Chapter")) {
+				std::regex_search(line, m, re);
+				chapter = m[1];
+				assert(chapter != "");
+
+			} else if (strstr(line.c_str(), "Paragraph")) {
+				std::regex_search(line, m, rep);
+				paragraph = m[1];
+				assert(paragraph != "");
+				parseline(v, chapter, paragraph, line);
 			}
 		}
 		fs.close();
 	}
 }
-
 int main()
 {
 	const char *books[] = {"Genesis",
