@@ -175,6 +175,51 @@ void parsefile(std::vector<book> &v, const std::string &filename)
 		fs.close();
 	}
 }
+#ifdef _DUMP
+struct refless {
+        bool operator()(const std::pair<std::string, std::string> &pl,
+                        const std::pair<std::string, std::string> &pr) const
+        {
+                std::string tl(pl.first);
+                std::string tr(pr.first);
+
+                char *sl = const_cast<char*>(tl.c_str());
+                char *sr = const_cast<char*>(tr.c_str());
+
+                assert(strstr(sl, "LBC"));
+                assert(strstr(sr, "LBC"));
+
+                sl += 4;
+                sr += 4;
+                        
+                std::vector<int> vl(3);
+                std::vector<int> vr(3);
+                size_t dexl = 0;
+                size_t dexr = 0;
+
+                char * tok = strtok(sl, ".");
+                while(tok) {
+                        vl[dexl++] = atoi(tok);
+                        tok = strtok(NULL, ".");
+                }
+
+                tok = strtok(sr, ".");
+                 while(tok) {
+                        vr[dexr++] = atoi(tok);
+                        tok = strtok(NULL, ".");
+                }
+
+                //assert(dexl == 2 && dexr == 2);
+
+                for(size_t i=0; i < 3; i++) 
+                        if(vl[i] != vr[i])
+                                return vl[i] < vr[i];
+
+                return false;
+        }
+
+};
+#endif
 int main()
 {
 	const char *books[] = {"Genesis",
@@ -267,11 +312,8 @@ int main()
 			}
 		}
 	}
-	std::sort(std::begin(dump), std::end(dump),
-		  [](std::pair<std::string, std::string> &p1,
-		     std::pair<std::string, std::string> &p2) {
-			  return p1.first.compare(p2.first) < 0;
-		  });
+	std::sort(std::begin(dump), std::end(dump), refless());
+
 	for (auto &p : dump)
 		fprintf(stdout, "%-*s %*s\n", 14, p.first.c_str(), 14,
 			p.second.c_str());
