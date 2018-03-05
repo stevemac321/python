@@ -69,49 +69,32 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 		    std::string &paragraph, std::string &footnote,
 		    std::string &token)
 {
-	char *pcpy = const_cast<char *>(token.c_str());
-	char *p = pcpy;
-	char *pverse = nullptr;
+	char *book = const_cast<char *>(token.c_str());
+	char *end = strstr(book, ":");
+	if (end == NULL)
+		return;
 
-	std::string book = "";
+	while (!isspace(*end) && end > book)
+		--end;
 
-	while (*p != ':' && *p != '\n')
-		++p;
+	if (end <= book)
+		return;
 
-	if (*p == ':') {
-		while (!isspace(*(p - 1)) && (p - 1) > pcpy)
-			--p;
+	char *verses = end + 1;
+	*end = '\0';
 
-		pverse = p;
-		if (p > pcpy)
-			--p;
+	std::string bk(book);
+	std::string verse(verses);
+	verse.erase(remove_if(verse.begin(), verse.end(), isspace), verse.end());
+        std::string ref("LBC ");
+        ref += chapter + "." + paragraph + "." + footnote;
+        auto p = std::make_pair(verse, ref);
 
-		while (isspace(*p) && p > pcpy)
-			--p;
-
-		if (p > pcpy && !isspace(*p)) {
-			*(p + 1) = '\0';
-			book = pcpy;
-			for (size_t i = 0; i < 66; i++)
-				if (book == v[i].name) {
-
-					std::string name = pverse;
-					name.erase(remove_if(name.begin(),
-							     name.end(),
-							     isspace),
-						   name.end());
-					std::string ref("LBC ");
-					ref += chapter;
-					ref += ".";
-					ref += paragraph;
-					ref += ".";
-					ref += footnote;
-					auto p = std::make_pair(name, ref);
-					v[i].verses.push_back(p);
-					break;
-				}
-		}
-	}
+        for(size_t i=0; i < 66; i++)
+                if(bk.find(v[i].name) != std::string::npos) {
+                        v[i].verses.push_back(p);
+                        break;
+                }
 }
 void parsehash(std::vector<book> &v, std::string &chapter,
 	       std::string &paragraph, std::string &token)
@@ -125,14 +108,18 @@ void parsehash(std::vector<book> &v, std::string &chapter,
 	if (std::regex_search(token, m, re)) {
 		footnote = m[1];
 		verses = m[2];
-	
-	        // tokenize on ;
-	        std::istringstream iss(verses);
-	        std::string semi;
 
-	        while (std::getline(iss, semi, ';'))
-		        parsesemicolon(v, chapter, paragraph, footnote, semi);
-        }
+		// tokenize on ;
+		std::vector<std::string> vtok;
+		char *tok = strtok(const_cast<char *>(verses.c_str()), ";");
+		while (tok) {
+			vtok.push_back(tok);
+			tok = strtok(NULL, ";");
+		}
+
+		for (auto s : vtok)
+			parsesemicolon(v, chapter, paragraph, footnote, s);
+	}
 }
 void parseline(std::vector<book> &v, std::string &chapter,
 	       std::string &paragraph, std::string &line)
@@ -143,18 +130,21 @@ void parseline(std::vector<book> &v, std::string &chapter,
 
 	if (strstr(line.c_str(), "(")) {
 		// capture refs within parens
-		if(std::regex_search(line, m, rev)) {
-		        parens = m[1];
-		        assert(parens != "");
+		if (std::regex_search(line, m, rev)) {
+			parens = m[1];
+			assert(parens != "");
 
-		        // tokenize on #
-		        std::istringstream iss(parens);
-		        std::string token = "";
+			std::vector<std::string> vtok;
+			char *tok =
+				strtok(const_cast<char *>(parens.c_str()), "#");
+			while (tok) {
+				vtok.push_back(tok);
+				tok = strtok(NULL, "#");
+			}
 
-		        while (std::getline(iss, token, '#'))
-			        parsehash(v, chapter, paragraph, token);
-                
-                }
+			for (auto s : vtok)
+				parsehash(v, chapter, paragraph, s);
+		}
 	}
 }
 void parsefile(std::vector<book> &v, const std::string &filename)
@@ -260,17 +250,44 @@ int main()
 
 	parsefile(v, "lbc.txt");
 
+#ifdef _DUMP
+
+	std::vector<std::pair<std::string, std::string>> dump;
+
+	for (size_t i = 0; i < 66; i++) {
+		if (!v[i].verses.empty()) {
+			std::sort(std::begin(v[i].verses),
+				  std::end(v[i].verses), verseless());
+
+			for (auto p : v[i].verses) {
+				std::string bookname = v[i].name;
+				bookname += " ";
+				bookname += p.first;
+				dump.push_back(make_pair(p.second, bookname));
+			}
+		}
+	}
+	std::sort(std::begin(dump), std::end(dump),
+		  [](std::pair<std::string, std::string> &p1,
+		     std::pair<std::string, std::string> &p2) {
+			  return p1.first.compare(p2.first) < 0;
+		  });
+	for (auto &p : dump)
+		fprintf(stdout, "%-*s %*s\n", 14, p.first.c_str(), 14,
+			p.second.c_str());
+
+#else
 	for (size_t i = 0; i < 66; i++) {
 		if (!v[i].verses.empty()) {
 			std::sort(std::begin(v[i].verses),
 				  std::end(v[i].verses), verseless());
 
 			fprintf(stdout, "%s\n", v[i].name.c_str());
-
 			for (auto i : v[i].verses)
-				fprintf(stdout, "%-*s %*s\n", 14,
+				fprintf(stdout, "%-*s %*s\n", 8,
 					i.first.c_str(), 8, i.second.c_str());
 		}
 	}
+#endif
 }
 
