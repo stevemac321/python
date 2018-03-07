@@ -136,9 +136,6 @@ void parse_file(struct book bks[BOOKS], const char *filename)
 void parse_line(struct book bks[BOOKS], const int chapter, const int paragraph,
 		const char *line)
 {
-	if (strstr(line, "3 John") && paragraph == 14)
-		printf("test %s\n", line);
-
 	char *begin = NULL;
 	char *end = NULL;
 	while ((begin = strstr(line, "(")) && (end = strstr(line, ")"))) {
