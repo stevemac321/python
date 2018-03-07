@@ -1,0 +1,53 @@
+Book: Genesis Count: 23
+Book: Exodus Count: 9
+Book: Leviticus Count: 1
+Book: Numbers Count: 1
+Book: Deuteronomy Count: 8
+Book: 2 Samuel Count: 5
+Book: 1 Kings Count: 2
+Book: 2 Kings Count: 3
+Book: 1 Chronicles Count: 1
+Book: 2 Chronicles Count: 3
+Book: Nehemiah Count: 4
+Book: Esther Count: 1
+Book: Job Count: 9
+Book: Psalm Count: 51
+Book: Proverbs Count: 4
+Book: Ecclesiastes Count: 6
+Book: Isaiah Count: 27
+Book: Jeremiah Count: 6
+Book: Lamentations Count: 1
+Book: Ezekiel Count: 6
+Book: Daniel Count: 3
+Book: Hosea Count: 1
+Book: Joel Count: 1
+Book: Amos Count: 2
+Book: Micah Count: 1
+Book: Nahum Count: 1
+Book: Zechariah Count: 1
+Book: Malachi Count: 4
+Book: Matthew Count: 54
+Book: Mark Count: 6
+Book: Luke Count: 20
+Book: John Count: 63
+Book: Acts Count: 51
+Book: Romans Count: 115
+Book: 1 Corinthians Count: 56
+Book: 2 Corinthians Count: 21
+Book: Galatians Count: 25
+Book: Ephesians Count: 48
+Book: Philippians Count: 9
+Book: Colossians Count: 19
+Book: 1 Thessalonians Count: 9
+Book: 2 Thessalonians Count: 12
+Book: 1 Timothy Count: 17
+Book: 2 Timothy Count: 13
+Book: Titus Count: 8
+Book: Hebrews Count: 50
+Book: James Count: 10
+Book: 1 Peter Count: 15
+Book: 2 Peter Count: 11
+Book: 1 John Count: 27
+Book: 3 John Count: 1
+Book: Jude Count: 2
+Book: Revelation Count: 8

@@ -12,6 +12,7 @@
 struct book {
 	std::string name = "";
 	std::vector<std::pair<std::string, std::string>> verses;
+        unsigned int count = 0;
 };
 struct verseless {
 	bool operator()(const std::pair<std::string, std::string> &l,
@@ -70,6 +71,9 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
 		    std::string &token)
 {
 	char *book = const_cast<char *>(token.c_str());
+        while(isspace(*book) && *book != '\0')
+                ++book;
+
 	char *end = strstr(book, ":");
 	if (end == NULL)
 		return;
@@ -91,7 +95,8 @@ void parsesemicolon(std::vector<book> &v, std::string &chapter,
         auto p = std::make_pair(verse, ref);
 
         for(size_t i=0; i < 66; i++)
-                if(bk.find(v[i].name) != std::string::npos) {
+                if(bk == v[i].name) {
+                        v[i].count++;
                         v[i].verses.push_back(p);
                         break;
                 }
@@ -109,7 +114,7 @@ void parsehash(std::vector<book> &v, std::string &chapter,
 		footnote = m[1];
 		verses = m[2];
 
-		// tokenize on ;
+                // tokenize on ;
 		std::vector<std::string> vtok;
 		char *tok = strtok(const_cast<char *>(verses.c_str()), ";");
 		while (tok) {
@@ -208,8 +213,6 @@ struct refless {
                         vr[dexr++] = atoi(tok);
                         tok = strtok(NULL, ".");
                 }
-
-                //assert(dexl == 2 && dexr == 2);
 
                 for(size_t i=0; i < 3; i++) 
                         if(vl[i] != vr[i])
@@ -318,6 +321,11 @@ int main()
 		fprintf(stdout, "%-*s %*s\n", 14, p.first.c_str(), 14,
 			p.second.c_str());
 
+        for(size_t i=0; i < 66; i++) {
+                if(v[i].count > 0) {
+                        printf("Book: %s Count: %d\n", v[i].name.c_str(), v[i].count);
+                }
+        }
 #else
 	for (size_t i = 0; i < 66; i++) {
 		if (!v[i].verses.empty()) {
