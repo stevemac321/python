@@ -5,6 +5,7 @@ const size_t BOOKS = 66;
 struct book {
 	const char *name;
 	struct tree verses;
+        unsigned int count;
 };
 
 void parse_semi(struct book bks[BOOKS], const int chapter, const int paragraph,
@@ -90,9 +91,12 @@ int main()
 			       "Jude",
 			       "Revelation"};
 
+        clock_t start = clock();
+
 	struct book bks[BOOKS];
 	for (size_t i = 0; i < BOOKS; i++) {
 		bks[i].name = books[i];
+                bks[i].count = 0;
 		tree_init(&bks[i].verses);
 	}
 
@@ -105,6 +109,17 @@ int main()
 			tree_delete(&bks[i].verses);
 		}
 	}
+        
+        clock_t stop = clock();
+        printf("%.4lf\n", (stop - start) / ((double) CLOCKS_PER_SEC));
+
+#ifdef _DUMP
+        for(size_t i=0; i < BOOKS; i++) {
+                if(bks[i].count > 0)
+                        printf("Book: %s Count: %d\n", bks[i].name, bks[i].count);
+        }
+
+#endif
 }
 void parse_file(struct book bks[BOOKS], const char *filename)
 {
@@ -225,12 +240,18 @@ void parse_semi(struct book bks[BOOKS], const int chapter, const int paragraph,
 
 	for (size_t i = 0; i < BOOKS; i++) {
 		if (strcmp(trimmed, bks[i].name) == 0) {
+                        bks[i].count++;
 			struct entry *e = malloc(sizeof(struct entry));
-			strcpy(e->verse, verses);
 			sprintf(e->ref, "LBC %d.%d.%d", chapter, paragraph,
 				footnote);
-
+#ifdef _DUMP
+                sprintf(e->verse, "%s %s", trimmed, verses);
+                fprintf(stdout, "%-*s %*s\n", 14, e->ref, 14, e->verse);
+                free(e);
+#else
+			strcpy(e->verse, verses);
 			tree_insert(&bks[i].verses, e);
+#endif
 			break;
 		}
 	}

@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <regex>
 #include <cstring>
 #include <algorithm>
+#include <time.h>
 
 struct book {
 	std::string name = "";
@@ -292,6 +294,8 @@ int main()
 			       "Jude",
 			       "Revelation"};
 
+        clock_t start = clock();
+
 	std::vector<book> v(70);
 	for (size_t i = 0; i < 66; i++)
 		v[i].name = books[i];
@@ -332,12 +336,16 @@ int main()
 			std::sort(std::begin(v[i].verses),
 				  std::end(v[i].verses), verseless());
 
-			fprintf(stdout, "%s\n", v[i].name.c_str());
+                        std::cout << v[i].name << "\n";
+//			fprintf(stdout, "%s\n", v[i].name.c_str());
 			for (auto i : v[i].verses)
 				fprintf(stdout, "%-*s %*s\n", 8,
 					i.first.c_str(), 8, i.second.c_str());
 		}
 	}
+
+        clock_t stop = clock();
+        printf("%.4lf\n", (stop - start) / ((double) CLOCKS_PER_SEC));
 #endif
 }
 
