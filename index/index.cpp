@@ -1,9 +1,9 @@
 #include <cassert>
-#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <deque>
 #include <fstream>
 #include <sstream>
 #include <regex>
@@ -36,24 +36,29 @@ int cmp(const char *left, const char *right)
                 qright.push_front(tok);
                 tok = strtok(NULL, delims);
         }
+        
 
         const char *pl = NULL;
         const char * pr = NULL;
-        
+        int il = 0;
+        int ir = 0;
+
         while(!qleft.empty() && !qright.empty()) {
                 pl = qleft.front();
                 qleft.pop_front();
                 pr = qright.front();
                 qright.pop_front();
-                int il = atoi(pl);
-                int ir = atoi(pr);
+                il = atoi(pl);
+                ir = atoi(pr);
 
                 if(il != ir) 
-                        return il - ir;
+                        break;
         }
-        /* else il still == ir, the queue that is not empty is greater*/
         
-        return qleft.size() - qright.size();
+        free(dupl);
+        free(dupr);
+        /* else il still == ir, the queue that is not empty is greater*/
+        return (il != ir) ? il - ir : qleft.size() - qright.size();
 }
 struct verseless {
 	bool operator()(const std::pair<std::string, std::string> &l,
@@ -334,8 +339,7 @@ int main()
 			std::sort(std::begin(v[i].verses),
 				  std::end(v[i].verses), verseless());
 
-                        std::cout << v[i].name << "\n";
-//			fprintf(stdout, "%s\n", v[i].name.c_str());
+			fprintf(stdout, "%s\n", v[i].name.c_str());
 			for (auto i : v[i].verses)
 				fprintf(stdout, "%-*s %*s\n", 8,
 					i.first.c_str(), 8, i.second.c_str());
