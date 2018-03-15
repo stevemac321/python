@@ -4,73 +4,67 @@
 #include <assert.h>
 #include <ctype.h>
 #include <mysql/mysql.h>
+#include "books.h"
 
-const char *books[] = {"Genesis",
-		       "Exodus",
-		       "Leviticus",
-		       "Numbers",
-		       "Deuteronomy",
-		       "Joshua",
-		       "Judges",
-		       "Ruth",
-		       "1 Samuel",
-		       "2 Samuel",
-		       "1 Kings",
-		       "2 Kings",
-		       "1 Chronicles",
-		       "2 Chronicles",
-		       "Ezra",
-		       "Nehemiah",
-		       "Esther",
-		       "Job",
-		       "Psalm",
-		       "Proverbs",
-		       "Ecclesiastes",
-		       "Song of Solomon",
-		       "Isaiah",
-		       "Jeremiah",
-		       "Lamentations",
-		       "Ezekiel",
-		       "Daniel",
-		       "Hosea",
-		       "Joel",
-		       "Amos",
-		       "Obadiah",
-		       "Jonah",
-		       "Micah",
-		       "Nahum",
-		       "Habakkuk",
-		       "Zephaniah",
-		       "Haggai",
-		       "Zechariah",
-		       "Malachi",
-		       "Matthew",
-		       "Mark",
-		       "Luke",
-		       "John",
-		       "Acts",
-		       "Romans",
-		       "1 Corinthians",
-		       "2 Corinthians",
-		       "Galatians",
-		       "Ephesians",
-		       "Philippians",
-		       "Colossians",
-		       "1 Thessalonians",
-		       "2 Thessalonians",
-		       "1 Timothy",
-		       "2 Timothy",
-		       "Titus",
-		       "Philemon",
-		       "Hebrews",
-		       "James",
-		       "1 Peter",
-		       "2 Peter",
-		       "1 John",
-		       "2 John",
-		       "3 John",
-		       "Jude",
-		       "Revelation"};
+#ifndef _countof
+#define _countof(x) sizeof(x) / sizeof(*(x))
+#endif
+
+enum cmdmode { ONE, CHAPTER, BOOK, ENTIRE };
+struct tuple {
+	const char *book;
+	int chapter;
+	int verse;
+};
+struct cmdargs {
+	const char *version;
+	const char *book;
+	int nbook;
+	int nchapter;
+	enum cmdmode mode;
+};
+
+char *trim_leading(char *line);
+char *trim_end(char *line);
+void print_one(const char *version, char *verse, MYSQL *conbib, MYSQL *conref);
+void print_chapter(const char *version, const char *book, const int nbook,
+		   const int nchapter, MYSQL *conbib, MYSQL *conref);
+void interactive(const char *version, MYSQL *conbib, MYSQL *conref);
+struct tuple tokenize(char *bookverse);
+struct cmdargs parsecmdline(int argc, const char *argv[]);
+int exit_usage(const char *msg);
+size_t book_lookup(const char *book);
+
+int main(int argc, const char *argv[])
+{
+	struct cmdargs args = parsecmdline(4, argv);
+
+	MYSQL *conbib = mysql_init(NULL);
+	assert(conbib);
+
+	assert(mysql_real_connect(conbib, "localhost", "root", "sqlpw", "bible",
+				  0, NULL, 0));
+
+	MYSQL *conref = mysql_init(NULL);
+	assert(conref);
+
+	assert(mysql_real_connect(conref, "localhost", "root", "sqlpw",
+				  "reformedrefs", 0, NULL, 0));
+
+	switch (args.mode) {
+	case CHAPTER:
+		print_chapter(args.version, args.book, args.nbook, args.nchapter,
+			      conbib, conref);
+		puts("");
+		break;
+	default:
+		interactive(args.version, conbib, conref);
+		break;
+	}
+
+	mysql_close(conbib);
+	mysql_close(conref);
+}
 
 char *trim_leading(char *line)
 {
@@ -97,119 +91,207 @@ char *trim_end(char *line)
 
 	return line;
 }
-void lookup(char *verse, MYSQL *con, MYSQL *con2)
+struct tuple tokenize(char *bookverse)
 {
-	char *p = strstr(verse, ":");
-	if (p == NULL)
-		return;
+	struct tuple tup;
+	char *p = strstr(bookverse, ":");
+	assert(p);
 
 	--p;
-	while (isdigit(*p) && p > verse)
+	while (isdigit(*p) && p > bookverse)
 		--p;
 
-	if (p <= verse)
-		return;
-	if (!isspace(*p))
-		return;
+	assert(p > bookverse);
+	assert(isspace(*p));
 
-        char * versepart = p + 1;
+	char *versepart = p + 1;
 
-        *p = '\0';
-        verse = trim_leading(verse);
-        verse = trim_end(verse);
+	*p = '\0';
+	bookverse = trim_leading(bookverse);
+	bookverse = trim_end(bookverse);
 
-	/* now verse is the name of the book, p is the start of verse*/
-        size_t len = strlen(verse);
-	size_t book = 0;
-        for(size_t i=0; i < 66; i++) 
-                if(strncmp(verse, books[i], len) == 0) {
-                        book = i + 1;
-                        break;
-                }
+	tup.book = bookverse;
 
-        if(book == 0)
-                return;
+	char *chap = strtok(versepart, ":");
+	char *vs = strtok(NULL, ":");
+	assert(chap && vs);
+	chap = trim_leading(chap);
+	chap = trim_end(chap);
+	vs = trim_leading(vs);
+	vs = trim_end(vs);
 
-        char * chap = strtok(versepart, ":");
-        char * vs = strtok(NULL, ":");
-        assert(chap && vs);
-        chap = trim_leading(chap);
-        chap = trim_end(chap);
-        vs = trim_leading(vs);
-        vs = trim_end(vs);
+	int nch = atoi(chap);
+	assert(nch > 0);
 
-        int nch = atoi(chap);
-        assert(nch > 0);
+	int nv = atoi(vs);
+	assert(nv > 0);
 
-        int nv = atoi(vs);
-        assert(nv > 0);
-	
-        char qbuf[128] = {'\0'};
-	
-	const char *fmt = "SELECT b,c,v,t  FROM t_kjv where b=('%d') AND c=('%d') AND v=('%d')";
-        sprintf(qbuf, fmt, book, nch, nv);
-        mysql_query(con, qbuf);
-        MYSQL_RES *res = mysql_store_result(con);
+	tup.chapter = nch;
+	tup.verse = nv;
 
-        int num_fields = mysql_num_fields(res);
-        assert(num_fields == 4);
-
-        MYSQL_ROW row;
-
-        row = mysql_fetch_row(res);
-        int dex = atoi(row[0]) - 1;
-        printf("%s %s:%s %s\n", books[dex], row[1], row[2], row[3]);
-
-	const char *fmt2 = "SELECT ref FROM reftable where book=('%s') AND LOCATE('%s', verse)";
-        char buf[12]={'\0'};
-        sprintf(buf, "%d:%d", nch, nv);
-        sprintf(qbuf, fmt2, books[dex], buf);
-        mysql_query(con2, qbuf);
-        MYSQL_RES *res2 = mysql_store_result(con2);
-
-        num_fields = mysql_num_fields(res2);
-
-        while((row = mysql_fetch_row(res2))) {
-                for(int i=0; i < num_fields; i++)
-                        if(row[i])
-                                printf("%s ", row[i]);
-        
-        }
-        puts("\n--------------------------------------------------------------------------------------");
-
-        if(res)
-                mysql_free_result(res);
-
-        if(res)
-                mysql_free_result(res2);
+	return tup;
 }
-int main()
+void print_one(const char *version, char *verse, MYSQL *conbib, MYSQL *conref)
+{
+	struct tuple tup = tokenize(verse);
+
+	size_t len = strlen(tup.book);
+	size_t book = 0;
+	for (size_t i = 0; i < _countof(books); i++)
+		if (strncmp(tup.book, books[i], len) == 0) {
+			book = i + 1;
+			break;
+		}
+
+	if (book == 0)
+		return;
+
+	char qbuf[128] = {'\0'};
+
+	const char *fmtbib =
+		"SELECT b,c,v,t  FROM t_kjv where b=('%d') AND c=('%d') AND v=('%d')";
+	sprintf(qbuf, fmtbib, book, tup.chapter, tup.verse);
+	mysql_query(conbib, qbuf);
+	MYSQL_RES *resbib = mysql_store_result(conbib);
+
+	int num_fields = mysql_num_fields(resbib);
+	assert(num_fields == 4);
+
+	MYSQL_ROW row;
+
+	row = mysql_fetch_row(resbib);
+	int dex = atoi(row[0]) - 1;
+	printf("%s %s:%s %s\n", books[dex], row[1], row[2], row[3]);
+
+	const char *fmtref =
+		"SELECT ref FROM reftable where book=('%s') AND LOCATE('%s', verse)";
+	char buf[12] = {'\0'};
+	sprintf(buf, "%d:%d", tup.chapter, tup.verse);
+	sprintf(qbuf, fmtref, books[dex], buf);
+	mysql_query(conref, qbuf);
+	MYSQL_RES *resref = mysql_store_result(conref);
+
+	num_fields = mysql_num_fields(resref);
+
+	while ((row = mysql_fetch_row(resref))) {
+		for (int i = 0; i < num_fields; i++)
+			if (row[i])
+				printf("%s ", row[i]);
+	}
+	puts("\n--------------------------------------------------------------------------------------");
+
+	if (resbib)
+		mysql_free_result(resbib);
+
+	if (resref)
+		mysql_free_result(resref);
+}
+void print_chapter(const char *version, const char *book, const int nbook,
+		   const int nchapter, MYSQL *conbib, MYSQL *conref)
+{
+	char bibbuf[128] = {'\0'};
+	char refbuf[128] = {'\0'};
+	char versebuf[12] = {'\0'};
+
+	const char *fmtbib =
+		"SELECT v,t  FROM t_kjv where b=('%d') AND c=('%d')";
+	const char *fmtref =
+		"SELECT ref FROM reftable where book=('%s') AND verse=('%s')";
+
+	sprintf(bibbuf, fmtbib, nbook, nchapter);
+	mysql_query(conbib, bibbuf);
+
+	MYSQL_RES *resbib = mysql_store_result(conbib);
+	MYSQL_ROW row;
+	MYSQL_RES *resref;
+	int num_fields = mysql_num_fields(resbib);
+
+        puts(book);
+	printf("Chapter %d\n",nchapter);
+	while ((row = mysql_fetch_row(resbib))) {
+		printf("\n%s %s\t", row[0], row[1]);
+		sprintf(versebuf, "%d:%d", nchapter, atoi(row[0]));
+		sprintf(refbuf, fmtref, book, versebuf);
+		mysql_query(conref, refbuf);
+		resref = mysql_store_result(conref);
+		num_fields = mysql_num_fields(resref);
+
+		while ((row = mysql_fetch_row(resref))) {
+			for (int i = 0; i < num_fields; i++)
+				if (row[i])
+					printf("%s ", row[i]);
+		}
+	}
+	if (resbib)
+		mysql_free_result(resbib);
+	if (resref)
+		mysql_free_result(resref);
+}
+void interactive(const char *version, MYSQL *conbib, MYSQL *conref)
 {
 	char *verse = NULL;
-        size_t len = 0;
-        ssize_t nread;
-        
-        MYSQL *con = mysql_init(NULL);
-	assert(con);
-
-	assert(mysql_real_connect(con, "localhost", "root", "sqlpw",
-				  "bible", 0, NULL, 0));
-
-        MYSQL *con2 = mysql_init(NULL);
-        assert(con2);
-
-	assert(mysql_real_connect(con2, "localhost", "root", "sqlpw",
-				  "reformedrefs", 0, NULL, 0));
+	size_t len = 0;
+	ssize_t nread;
 
 	while ((nread = getline(&verse, &len, stdin)) != -1) {
 		if (strncmp("\\q", verse, 2) == 0) {
 			break;
-                } else {
-			lookup(verse, con, con2);
-                }
+		} else {
+			print_one(version, verse, conbib, conref);
+		}
 	}
 
 	free(verse);
-        mysql_close(con);
-        mysql_close(con2);
+}
+
+struct cmdargs parsecmdline(int argc, const char *argv[])
+{
+	struct cmdargs args = {"t_kjv", NULL, 0, 0, ONE};
+	if (argc > 1) {
+                if(*argv[1] != 't')
+                        exit_usage(NULL);
+
+		args.version = argv[1];
+        }
+
+	if (argc > 2) {
+		if (strcmp("entire", argv[2]) == 0) {
+			args.mode = ENTIRE;
+			return args;
+		}
+
+		int i = book_lookup(argv[2]);
+		if (i == -1)
+			return args;
+
+		args.nbook = i + 1;
+		args.book = books[i];
+		args.mode = BOOK;
+	}
+
+	if (argc > 3) {
+		args.nchapter = atoi(argv[3]);
+		args.mode = CHAPTER;
+	}
+
+	return args;
+}
+
+int exit_usage(const char *msg)
+{
+	if (msg == NULL)
+		puts("first arg is version, second arg is chapter, book, or entire (bible)");
+	else
+		puts(msg);
+
+	exit(-1);
+}
+size_t book_lookup(const char *book)
+{
+	size_t len = strlen(book);
+	for (size_t i = 0; i < _countof(books); i++) {
+		if (strncmp(book, books[i], len) == 0)
+			return i;
+	}
+	return -1;
 }
