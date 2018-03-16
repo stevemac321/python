@@ -29,6 +29,9 @@ char *trim_end(char *line);
 void print_one(const char *version, char *verse, MYSQL *conbib, MYSQL *conref);
 void print_chapter(const char *version, const char *book, const int nbook,
 		   const int nchapter, MYSQL *conbib, MYSQL *conref);
+void print_book(const char *version, const char *book, const int nbook,
+		 MYSQL *conbib, MYSQL *conref);
+void print_entire(const char *version, MYSQL *conbib, MYSQL *conref);
 void interactive(const char *version, MYSQL *conbib, MYSQL *conref);
 struct tuple tokenize(char *bookverse);
 struct cmdargs parsecmdline(int argc, const char *argv[]);
@@ -37,7 +40,7 @@ size_t book_lookup(const char *book);
 
 int main(int argc, const char *argv[])
 {
-	struct cmdargs args = parsecmdline(4, argv);
+	struct cmdargs args = parsecmdline(argc, argv);
 
 	MYSQL *conbib = mysql_init(NULL);
 	assert(conbib);
@@ -53,10 +56,18 @@ int main(int argc, const char *argv[])
 
 	switch (args.mode) {
 	case CHAPTER:
-		print_chapter(args.version, args.book, args.nbook, args.nchapter,
-			      conbib, conref);
+		print_chapter(args.version, args.book, args.nbook,
+			      args.nchapter, conbib, conref);
 		puts("");
 		break;
+        case BOOK:
+                print_book(args.version, args.book, args.nbook, conbib, conref);
+                puts("");
+                break;
+        case ENTIRE:
+                print_entire(args.version, conbib, conref);
+                puts("");
+                break;
 	default:
 		interactive(args.version, conbib, conref);
 		break;
@@ -206,8 +217,8 @@ void print_chapter(const char *version, const char *book, const int nbook,
 	MYSQL_RES *resref;
 	int num_fields = mysql_num_fields(resbib);
 
-        puts(book);
-	printf("Chapter %d\n",nchapter);
+	puts(book);
+	printf("Chapter %d\n", nchapter);
 	while ((row = mysql_fetch_row(resbib))) {
 		printf("\n%s %s\t", row[0], row[1]);
 		sprintf(versebuf, "%d:%d", nchapter, atoi(row[0]));
@@ -248,11 +259,11 @@ struct cmdargs parsecmdline(int argc, const char *argv[])
 {
 	struct cmdargs args = {"t_kjv", NULL, 0, 0, ONE};
 	if (argc > 1) {
-                if(*argv[1] != 't')
-                        exit_usage(NULL);
+		if (*argv[1] != 't')
+			exit_usage(NULL);
 
 		args.version = argv[1];
-        }
+	}
 
 	if (argc > 2) {
 		if (strcmp("entire", argv[2]) == 0) {
@@ -294,4 +305,60 @@ size_t book_lookup(const char *book)
 			return i;
 	}
 	return -1;
+}
+void print_book(const char *version, const char *book, const int nbook,
+		 MYSQL *conbib, MYSQL *conref)
+{
+        char bibbuf[128] = {'\0'};
+	char refbuf[128] = {'\0'};
+	char versebuf[12] = {'\0'};
+
+	const char *fmtbib =
+		"SELECT c,v,t  FROM t_kjv where b=('%d')";
+	const char *fmtref =
+		"SELECT ref FROM reftable where book=('%s') AND verse=('%s')";
+
+	sprintf(bibbuf, fmtbib, nbook);
+	mysql_query(conbib, bibbuf);
+
+	MYSQL_RES *resbib = mysql_store_result(conbib);
+	MYSQL_ROW row;
+	MYSQL_RES *resref;
+
+	int num_fields = mysql_num_fields(resbib);
+        int oldchapter=1;
+        int newchapter=0;
+
+        puts(book);
+        printf("Chapter %d\n", oldchapter);
+	while ((row = mysql_fetch_row(resbib))) {
+                if((newchapter= atoi(row[0])) != oldchapter) {
+                        printf("\nChapter %d\n", newchapter);
+                        oldchapter = newchapter;
+                }
+                                        
+		printf("\n%s %s\t", row[1], row[2]);
+		sprintf(versebuf, "%d:%d", newchapter, atoi(row[1]));
+		sprintf(refbuf, fmtref, book, versebuf);
+		mysql_query(conref, refbuf);
+		resref = mysql_store_result(conref);
+		num_fields = mysql_num_fields(resref);
+
+		while ((row = mysql_fetch_row(resref))) {
+			for (int i = 0; i < num_fields; i++)
+				if (row[i])
+					printf("%s ", row[i]);
+		}
+	}
+	if (resbib)
+		mysql_free_result(resbib);
+	if (resref)
+		mysql_free_result(resref);
+
+}
+void print_entire(const char *version, MYSQL *conbib, MYSQL *conref)
+{
+       for(size_t i=0; i < _countof(books); i++) 
+                print_book(version, books[i], i+1, conbib, conref);
+       
 }
