@@ -175,7 +175,7 @@ void print_one(const char *version, char *verse, MYSQL *conbib, MYSQL *conref)
 	printf("%s %s:%s %s\n", books[dex], row[1], row[2], row[3]);
 
 	const char *fmtref =
-		"SELECT ref FROM reftable where book=('%s') AND LOCATE('%s', verse)";
+		"SELECT ref FROM reftable where book=('%s') AND verse REGEXP('^%s')";
 	char buf[12] = {'\0'};
 	sprintf(buf, "%d:%d", tup.chapter, tup.verse);
 	sprintf(qbuf, fmtref, books[dex], buf);
@@ -207,7 +207,7 @@ void print_chapter(const char *version, const char *book, const int nbook,
 	const char *fmtbib =
 		"SELECT v,t  FROM t_kjv where b=('%d') AND c=('%d')";
 	const char *fmtref =
-		"SELECT ref FROM reftable where book=('%s') AND verse=('%s')";
+		"SELECT ref FROM reftable where book=('%s') AND verse REGEXP('^%s')";
 
 	sprintf(bibbuf, fmtbib, nbook, nchapter);
 	mysql_query(conbib, bibbuf);
@@ -316,7 +316,7 @@ void print_book(const char *version, const char *book, const int nbook,
 	const char *fmtbib =
 		"SELECT c,v,t  FROM t_kjv where b=('%d')";
 	const char *fmtref =
-		"SELECT ref FROM reftable where book=('%s') AND verse=('%s')";
+		"SELECT ref FROM reftable where book=('%s') AND verse REGEXP('^%s')";
 
 	sprintf(bibbuf, fmtbib, nbook);
 	mysql_query(conbib, bibbuf);
