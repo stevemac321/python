@@ -160,8 +160,8 @@ void print_one(const char *version, char *verse, MYSQL *conbib, MYSQL *conref)
 	char qbuf[128] = {'\0'};
 
 	const char *fmtbib =
-		"SELECT b,c,v,t  FROM t_kjv where b=('%d') AND c=('%d') AND v=('%d')";
-	sprintf(qbuf, fmtbib, book, tup.chapter, tup.verse);
+		"SELECT b,c,v,t  FROM %s where b=('%d') AND c=('%d') AND v=('%d')";
+	sprintf(qbuf, fmtbib, version, book, tup.chapter, tup.verse);
 	mysql_query(conbib, qbuf);
 	MYSQL_RES *resbib = mysql_store_result(conbib);
 
@@ -205,11 +205,11 @@ void print_chapter(const char *version, const char *book, const int nbook,
 	char versebuf[12] = {'\0'};
 
 	const char *fmtbib =
-		"SELECT v,t  FROM t_kjv where b=('%d') AND c=('%d')";
+		"SELECT v,t  FROM %s where b=('%d') AND c=('%d')";
 	const char *fmtref =
 		"SELECT ref FROM reftable where book=('%s') AND verse REGEXP('^%s')";
 
-	sprintf(bibbuf, fmtbib, nbook, nchapter);
+	sprintf(bibbuf, fmtbib, version, nbook, nchapter);
 	mysql_query(conbib, bibbuf);
 
 	MYSQL_RES *resbib = mysql_store_result(conbib);
@@ -314,11 +314,11 @@ void print_book(const char *version, const char *book, const int nbook,
 	char versebuf[12] = {'\0'};
 
 	const char *fmtbib =
-		"SELECT c,v,t  FROM t_kjv where b=('%d')";
+		"SELECT c,v,t  FROM %s where b=('%d')";
 	const char *fmtref =
 		"SELECT ref FROM reftable where book=('%s') AND verse REGEXP('^%s')";
 
-	sprintf(bibbuf, fmtbib, nbook);
+	sprintf(bibbuf, fmtbib, version, nbook);
 	mysql_query(conbib, bibbuf);
 
 	MYSQL_RES *resbib = mysql_store_result(conbib);
