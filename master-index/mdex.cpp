@@ -1,14 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <vector>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
+#include <cstring>
 #include <mysql/mysql.h>
 #include "books.h"
-
-#ifndef _countof
-#define _countof(x) sizeof(x) / sizeof(*(x))
-#endif
 
 struct mydb {
 	MYSQL *con = nullptr;
@@ -36,82 +30,96 @@ struct mydb {
 					  nullptr, 0);
 	}
 };
-
-std::vector<int> print_xrefs(MYSQL *xrefcon, const int vid)
+void print_one(const int nbook, const int nchap, const int nverse)
 {
-        std::vector<int> v;
-        return v;
+        char verse[64];
+        sprintf(verse, "%s %d:%d ", books[nbook-1], nchap, nverse);
+        printf("%s",verse);
+        
 }
-
-void print_refs(MYSQL *con, const char *book, const int nchap,
-		 const int nverse)
+void get_refs(MYSQL *con, const int id, const int sv, const int ev)
 {
-	char vbuf[32] = {'\0'};
-	char qbuf[128] = {'\0'};
-        char out[128]={'\0'};
-	const char *fmt =
-		"SELECT ref FROM reftable where book=('%s') AND verse=('%s') ORDER BY verse ASC, ref ASC";
-	sprintf(vbuf, "%d:%d", nchap, nverse);
-        sprintf(qbuf, fmt, book, vbuf);
-        mysql_query(con, qbuf);
-        auto res = mysql_store_result(con);
-        auto num_fields = mysql_num_fields(res);
+        char buf[128];
+        sprintf(buf, "select id,b,c,v from t_kjv where id between %d and %d", sv, ev);
 
-        MYSQL_ROW row;
-	while ((row = mysql_fetch_row(res))) {
-		for (int i = 0; i < num_fields; i++) {
-			if (row[i]) 
-                                fprintf(stdout, "%-*s %*s\n", 14, vbuf, 8, row[0]);
-                }
+	mysql_query(con, buf);
+	MYSQL_RES *res = mysql_store_result(con);
+	int nfields = mysql_num_fields(res);
+
+	MYSQL_ROW row;
+        while((row= mysql_fetch_row(res))) 
+                if(row[0]) 
+                        print_one(atoi(row[1]), atoi(row[2]), atoi(row[3]));                
+                
+        if(res)
+                mysql_free_result(res);
+
+}
+void print_refs(MYSQL *bibcon, MYSQL *conref, const int vid)
+{
+
+	char bufref[128];
+	sprintf(bufref, "select vid,r,sv,ev from cross_reference where vid=%d order by r DESC", vid);
+	mysql_query(conref, bufref);
+
+	MYSQL_RES *res = mysql_store_result(conref);
+	int nfields = mysql_num_fields(res);
+
+	MYSQL_ROW row; 
+
+	while((row = mysql_fetch_row(res))) {
+                if(row[0])
+                        get_refs(bibcon, atoi(row[0]), atoi(row[2]), atoi(row[3]));
         }
 	if (res)
 		mysql_free_result(res);
 }
-void print_book(const char *version, const char *book, const int nbook,
-		MYSQL *conbib, MYSQL *conref, MYSQL *conxref, bool bxrefs=false)
+
+void print_verse(MYSQL *conbib, MYSQL *conref, const char *book,
+		 const int nbook, const int nchap, const int nverse,
+		 const char *version = "t_kjv")
 {
-        assert(version && book && conbib && conref && conxref);
-        char qbuf[128] = {'\0'};
-        const char * fmt = "SELECT id,c,v FROM %s WHERE b=('%d')";
-        sprintf(qbuf, fmt, version, nbook);
-        
-        mysql_query(conbib, qbuf);
-        auto res = mysql_store_result(conbib);
-        auto num_fields = mysql_num_fields(res);
+	char bufbib[128];
+	sprintf(bufbib, "select id,t from %s where b=%d and c=%d and v=%d", version, nbook, nchap, nverse);
 
-        puts(book);
+	mysql_query(conbib, bufbib);
 
-        MYSQL_ROW row;
+	MYSQL_RES *res = mysql_store_result(conbib);
+	int nfields = mysql_num_fields(res);
 
-        while((row = mysql_fetch_row(res))) {
-                if(row[0]) {
-                        print_refs(conref, book, atoi(row[1]), atoi(row[2]));
-                
-                        if(bxrefs)
-                                print_xrefs(conxref, atoi(row[0]));
-                }
-        }
-
+	MYSQL_ROW row;
+	while ((row = mysql_fetch_row(res))) {
+		if (row[0]) {
+                        printf("%s %d:%d %s\n", book, nchap, nverse, row[1]);
+                        print_refs(conbib, conref, atoi(row[0]));
+		}
+	}
+        puts("");
+	if (res)
+		mysql_free_result(res);
 }
-void print_master(const char *version, bool bxrefs=false)
+int getdex(const char *book)
 {
-	mydb ref("reformedrefs");
-	mydb xref("crossrefs");
-	mydb bib("bible");
+	for (size_t i = 0; i < _countof(books); i++)
+		if (strcmp(book, books[i]) == 0)
+			return i;
 
-	ref.connect();
-	xref.connect();
-	bib.connect();
-       size_t i; 
-        for(i=0; i < _countof(books); i++)
-                if(strcmp("Psalm", books[i]) == 0)
-                        break;
-
-	for (size_t i = 0; i < _countof(books); i++) 
-		print_book(version, books[i], i + 1, bib.con, ref.con,
-			   xref.con, bxrefs);
+	return -1;
 }
 int main(const int argc, const char *argv[])
 {
-	print_master("t_asv");
+        if(argc < 5) {
+                puts("pass version, bookname, chapter, and verse deliniated by spaces");
+                return -1;
+        }
+	const char *version = argv[1];
+
+	mydb bib("bible");
+	mydb ref("crossrefs");
+
+	assert(bib.connect());
+	assert(ref.connect());
+
+	int dex = getdex(argv[2]);
+	print_verse(bib.con, ref.con, books[dex], dex + 1, atoi(argv[3]), atoi(argv[4]), version);
 }
